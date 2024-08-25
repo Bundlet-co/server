@@ -1,0 +1,148 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderEventStatus {
+  PENDING
+  ACCEPTED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+model User{
+  id       String   @id @default(uuid())
+  email    String   @unique
+  password String
+  phone_number String?
+  name      String
+  address   Json?
+  refresh_token String[]
+  verification_code  String?
+  resetPasswordToken String?
+  isVerified         Boolean   @default(false)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  orders    Order[]
+
+}
+
+model Merchant{
+  id       String   @id @default(uuid())
+  name     String
+  email    String   @unique
+  password String
+  address  String
+  phone    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  dp        String
+  website   String?
+  bank_name String?
+  account_name String?
+  account_number Int?
+  verification_code  String?
+  resetPasswordToken String?
+  isVerified         Boolean   @default(false)
+  balance Int @default(0)
+  refresh_token String[] 
+  
+
+  products Product[]
+
+}
+
+model Product {
+  id        String   @id @default(uuid())
+  name      String
+  category  String
+  slug      String[]
+  description String
+  price      Float
+  dp         String
+  images     String[]
+  color      String[]
+  size       String[]
+  merchant_id String
+  quantity   Int
+  discount_type String
+  discount_amount Int
+  opening_date DateTime
+  available_till Int
+  delivery_duration Int
+  tags       String[]
+  merchant Merchant  @relation(fields: [merchant_id], references: [id])
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  orderProduct OrderProduct[]
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String[]
+  description String
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model SubCategory {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String[]
+  main_category String
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model Order {
+  id        String           @id @default(uuid())
+  userId    String           @default(uuid())
+  user      User             @relation(fields: [userId], references: [id])
+  netAmount Decimal
+  address   String
+  status    OrderEventStatus @default(PENDING)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  products  OrderProduct[]
+  events    OrderEvents[]
+
+  @@map("orders")
+}
+
+model OrderProduct {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("order_products")
+}
+
+model OrderEvents {
+  id        String           @id @default(uuid())
+  orderId   String
+  order     Order            @relation(fields: [orderId], references: [id])
+  status    OrderEventStatus @default(PENDING)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@map("order_events")
+}

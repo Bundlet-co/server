@@ -1,0 +1,32 @@
+{
+  "name": "bundlet-server",
+  "version": "1.0.0",
+  "description": "Backend Api for bundlet",
+  "main": "server.js",
+  "author": "Bundlet",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "5.18.0",
+    "argon2": "^0.40.3",
+    "compression": "^1.7.4",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "crypto-random-string": "3.*",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "figlet": "^1.7.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.14",
+    "pm2": "^5.4.2",
+    "prisma": "^5.18.0"
+  },
+  "scripts": {
+    "dev": "nodemon server",
+    "start": "prisma db push && pm2 start index.js --name Bundlet && pm2 log Bundlet",
+    "db-update": "prisma db push"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}
