@@ -153,6 +153,13 @@ const loginUser = async ( req, res ) =>
             delete user.refresh_token
             delete user.resetPasswordToken
 
+            res.cookie("refreshToken", refreshToken, {
+                  httpOnly: true,
+                  maxAge: 30 * 24 * 60 * 60 * 1000,
+                  sameSite: 'None',
+                  secure: true,
+            });
+
             return res.status( 200 ).json( { message: "Login was successful", data: { ...user } } );
 
       } catch (e) {

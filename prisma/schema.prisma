@@ -77,17 +77,33 @@ model Product {
   size       String[]
   merchant_id String
   quantity   Int
-  discount_type String
-  discount_amount Int
-  opening_date DateTime
-  available_till Int
+  discount_type String?
+  discount_amount Int?
+  opening_date DateTime?
+  available_till Int?
   delivery_duration Int
+  dispatch_location String
   tags       String[]
   merchant Merchant  @relation(fields: [merchant_id], references: [id])
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
   orderProduct OrderProduct[]
+  suplementryProducts SuplementryProduct[]
+}
+
+model SuplementryProduct{
+  id        String   @id @default(uuid())
+  name      String
+  category  String
+  slug      String[]
+  description String
+  product_id  String
+  price      Float
+  dp          String
+
+
+  product Product @relation(fields: [product_id], references: [id])
 }
 
 model Category {
@@ -129,6 +145,7 @@ model OrderProduct {
   order     Order    @relation(fields: [orderId], references: [id])
   productId String
   product   Product  @relation(fields: [productId], references: [id])
+  status    OrderEventStatus @default(PENDING)
   quantity  Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
