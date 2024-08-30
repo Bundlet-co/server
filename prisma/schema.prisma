@@ -36,6 +36,7 @@ model User{
   updatedAt DateTime         @updatedAt
 
   orders    Order[]
+  cartItem  CartItem[]
 
 }
 
@@ -90,6 +91,7 @@ model Product {
 
   orderProduct OrderProduct[]
   suplementryProducts SuplementryProduct[]
+  cartIntems CartItem[]
 }
 
 model SuplementryProduct{
@@ -124,6 +126,19 @@ model SubCategory {
   updatedAt DateTime         @updatedAt
 }
 
+model CartItem {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("cart_items")
+}
+
 model Order {
   id        String           @id @default(uuid())
   userId    String           @default(uuid())
@@ -144,6 +159,7 @@ model OrderProduct {
   orderId   String
   order     Order    @relation(fields: [orderId], references: [id])
   productId String
+  price     Float
   product   Product  @relation(fields: [productId], references: [id])
   status    OrderEventStatus @default(PENDING)
   quantity  Int

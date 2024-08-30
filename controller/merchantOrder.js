@@ -1,5 +1,6 @@
 const { PrismaClient } = require( "@prisma/client" );
 const { sendErrorResponse, sendSuccessResponse } = require( "../utils/responseHelper" );
+const { updateOrderStatus } = require( "../utils/orderHelper" );
 
 const prisma = new PrismaClient();
 
@@ -230,6 +231,28 @@ const getOrderByStatus = async ( req, res ) =>
       }
 }
 
+const updateStatus = async ( req, res ) =>
+{
+      const { id,status } = req.query
+      
+      try {
+            const orders = await prisma.orderProduct.update( {
+                  where: {
+                        id
+                  }, data: {
+                        status:status.toUpperCase()
+                  }
+            } );
+
+            await updateOrderStatus(id,status.toUpperCase())
+
+            return sendSuccessResponse(res,202,"Order Accepted", {orders})
+      } catch (error) {
+            console.error( error );
+            return sendErrorResponse( res, 500, "Internal server error", error );
+      }
+}
 
 
-module.exports = {getOrders,getRecentOrder,getOrderByStatus, getRecentOrderReverse}
+
+module.exports = {getOrders,getRecentOrder,getOrderByStatus, getRecentOrderReverse,updateStatus}

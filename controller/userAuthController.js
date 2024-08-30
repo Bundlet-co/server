@@ -2,7 +2,8 @@ const { PrismaClient, Prisma } = require( '@prisma/client' );
 const argon = require( "argon2" );
 const randomString = require("crypto-random-string");
 const { sendMail } = require( '../utils/sendMail' );
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
+const { sendSuccessResponse, sendErrorResponse } = require( '../utils/responseHelper' );
 
 const prisma = new PrismaClient();
 
@@ -86,13 +87,14 @@ const createUser = async ( req, res ) =>
             } )
             
             await sendMail( from, email, subject, html );
-            return res.status( 201 ).json( { message: "Account created", data: { email } } );
+            return sendSuccessResponse( res, 201, "Account Created", { email } );
       } catch (e) {
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
-            if (e.code === "P2002")
-            return res.status(409).json({ message: "Email already exist" });
+            if ( e.code === "P2002" )
+                  return sendErrorResponse(res,409,"Email Already exist")
       }
-            return res.status(500).json({ message: "internal server error", error: e });
+            return sendErrorResponse(res,500,"Internal server error",e)
+            
       } finally {
             setTimeout(async () => {
                   await prisma.user.update({
@@ -160,15 +162,15 @@ const loginUser = async ( req, res ) =>
                   secure: true,
             });
 
-            return res.status( 200 ).json( { message: "Login was successful", data: { ...user } } );
+            return sendSuccessResponse( res, 200, "Login was successfull", { user } );
 
       } catch (e) {
             if (e instanceof Prisma.PrismaClientKnownRequestError) {
                   if (e.code === "P2025")
-                  return res.status(404).json({ message: "User not found" });
+                  return sendErrorResponse(res,404,"User does not exist")
             }
-            console.log(e)
-            return res.status(500).json({ message: "internal server error", error: e });
+            console.log( e )
+            return sendErrorResponse( res, 500, "Internal server error", e );
       }
 };
 
@@ -183,18 +185,23 @@ const editUser = async ( req, res ) =>
 
             user.phone_number = phone_number
             user.name = name
-            user.address = address ? user.address.push( { id: user.address.length + 1, address } ) : address;
+            user.address = address && user.address !== null ? [...user.address, {id:user.address.length +1, address}]: address && user.address === null ? [{id:1,address}] : user.address;
 
-            await prisma.user.update( { where: { id }, data: user } );
+            const updated = await prisma.user.update( { where: { id }, data: user } );
 
-            return res.status( 200 ).json( { message: "Profile updated" } );
-      } catch (e) {
+            delete updated.password;
+            delete updated.verification_code;
+            delete updated.refresh_token
+            delete updated.resetPasswordToken
+
+            return sendSuccessResponse(res,200,"profile updated",{user:updated})
+      }  catch (e) {
             if (e instanceof Prisma.PrismaClientKnownRequestError) {
                   if (e.code === "P2025")
-                  return res.status(404).json({ message: "User not found" });
+                  return sendErrorResponse(res,404,"User does not exist")
             }
-            console.log(e)
-            return res.status(500).json({ message: "internal server error", error: e });
+            console.log( e )
+            return sendErrorResponse( res, 500, "Internal server error", e );
       }
 };
 
@@ -205,13 +212,13 @@ const deleteUser = async ( req, res ) =>
             if ( !id ) return res.status( 400 ).json( { message: "User id is required" } );
             await prisma.user.delete( { where: { id } } );
             return res.status( 200 ).json( { message: "Profile deleted" } );
-      } catch (e) {
+      }  catch (e) {
             if (e instanceof Prisma.PrismaClientKnownRequestError) {
                   if (e.code === "P2025")
-                  return res.status(404).json({ message: "User not found" });
+                  return sendErrorResponse(res,404,"User does not exist")
             }
-            console.log(e)
-            return res.status(500).json({ message: "internal server error", error: e });
+            console.log( e )
+            return sendErrorResponse( res, 500, "Internal server error", e );
       }
 };
 

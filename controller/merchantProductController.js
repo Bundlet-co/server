@@ -108,7 +108,7 @@ const updateProduct = async ( req, res ) =>
                         category,
                         slug,
                         description,
-                        price,
+                        price:parseFloat(price),
                         color,
                         size,
                         quantity,
@@ -244,7 +244,7 @@ const deleteImage = async ( req, res ) =>
                   return sendErrorResponse(res,404,"Product not found", null)
             }
             if (e.code === "ENOENT"){
-                  return res.status(202).json({message:"Product was updated"})
+                  return sendSuccessResponse( res, 200, "product deleted successfully" );
             }
             console.log(e)
             return sendErrorResponse(res,500,"Internal server error",e)

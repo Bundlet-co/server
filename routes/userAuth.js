@@ -8,9 +8,6 @@ const router = express.Router();
 router.post( '/register', createUser );
 router.post( '/login', loginUser );
 
-router.route( '/:id', verifyJwt )
-      .put( editUser )
-      .delete( deleteUser );
 
 
 

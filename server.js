@@ -72,6 +72,7 @@ app.get( '/', ( req, res ) =>
 app.use( '/auth', require( './routes/userAuth' ) );
 app.use( '/refresh', require( "./routes/refresh" ) );
 app.use( '/verify', require( "./routes/userVerify" ) );
+app.use( '/product', require( "./routes/userProduct" ) );
 
 
 //Merchant Routes without verification
@@ -84,13 +85,19 @@ app.use( '/merchant/verify', require( "./routes/verifyMerchant" ) );
 
 //User Routes with jwt verification
 app.use( verifyJwt );
+app.use('/profile',require("./routes/userProfile"))
+app.use( "/cart", require( "./routes/cart" ) );
+app.use("/order", require("./routes/userOrder"))
 
 
 //Merchant Routes with jwt verification
 app.use( verifyMerchant );
+app.use("/merchant/profile",storeCp,require("./routes/merchantProfile"))
 app.use( '/merchant/product',productCp, require( './routes/merchantProduct' ) );
 app.use( '/merchant/order', require( "./routes/merchantOrder" ) );
 app.use( '/merchant/suplementry', suplementryCp, require( './routes/merchantSupplementry' ) );
+app.use( '/merchant/category', require( './routes/merchantCategory' ) );
+app.use( '/merchant/subcategory', require( "./routes/merchantSubCategory" ) );
 
 app.listen( PORT, () =>
 {

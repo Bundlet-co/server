@@ -19,7 +19,7 @@ const refresh = async ( req, res ) =>
             })
             
 
-            jwt.verify( oldRefresh, process.env.REFRESH_TOKEN_SECRET, async ( err, decoded ) =>
+            jwt.verify( oldRefresh, process.env.REFRESH_TOKEN, async ( err, decoded ) =>
             {
                   if ( err || foundUser.email !== decoded.email ) return res.status( 403 );
                   // Creation of new refresh and access token
@@ -27,7 +27,7 @@ const refresh = async ( req, res ) =>
                         email: foundUser.email,
                         id: foundUser.id,
                         name: foundUser.name
-                        }, process.env.REFRESH_TOKEN_SECRET, {
+                        }, process.env.REFRESH_TOKEN, {
                         expiresIn: '30d'
                   } )
 
@@ -35,7 +35,7 @@ const refresh = async ( req, res ) =>
                         email: foundUser.email,
                         id: foundUser.id,
                         name: foundUser.name
-                        }, process.env.ACCESS_TOKEN_SECRET, {
+                        }, process.env.ACCESS_TOKEN, {
                         expiresIn: '3h'
                   } )
 
@@ -89,7 +89,7 @@ const merchantRefresh = async ( req, res ) =>
             
             if ( !foundUser ) return res.sendStatus( 403 );
 
-            jwt.verify( oldRefresh, process.env.REFRESH_TOKEN_SECRET, async ( err, decoded ) =>
+            jwt.verify( oldRefresh, process.env.REFRESH_TOKEN, async ( err, decoded ) =>
             {
                   if ( err || foundUser.email !== decoded.email ) return res.status( 403 );
                   // Creation of new refresh and access token
@@ -97,7 +97,7 @@ const merchantRefresh = async ( req, res ) =>
                         email: foundUser.email,
                         id: foundUser.id,
                         name: foundUser.name
-                  }, process.env.REFRESH_TOKEN_SECRET, {
+                  }, process.env.REFRESH_TOKEN, {
                         expiresIn: '30d'
                   } )
 
@@ -105,7 +105,7 @@ const merchantRefresh = async ( req, res ) =>
                         email: foundUser.email,
                         id: foundUser.id,
                         name: foundUser.name
-                  }, process.env.ACCESS_TOKEN_SECRET, {
+                  }, process.env.ACCESS_TOKEN, {
                         expiresIn: '3h'
                   } )
 

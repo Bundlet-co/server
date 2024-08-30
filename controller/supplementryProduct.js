@@ -56,7 +56,7 @@ const getSuplementryProduct = async ( req, res ) =>
 const deleteSuplementryProduct = async ( req, res ) =>
 {
       const { id } = req.params
-      if ( !id ) sendErrorResponse( res, 400, "Product Id is required" );
+      if ( !id ) return sendErrorResponse( res, 400, "Product Id is required" );
       try {
             const product = await prisma.suplementryProduct.delete( {
                   where: { id }
@@ -80,7 +80,7 @@ const deleteSuplementryProduct = async ( req, res ) =>
 const deleteAllSuplementryProduct = async ( req, res ) =>
 {
       const { product_id } = req.query
-      if ( !id ) sendErrorResponse( res, 400, "Product Id is required" );
+      if ( !id ) return sendErrorResponse( res, 400, "Product Id is required" );
       try {
             const product = await prisma.suplementryProduct.findMany( { where: { product_id } } );
 
@@ -128,8 +128,76 @@ const createSuplementryProduct = async ( req, res ) =>
       }
 }
 
+const editSuplementryProdct = async ( req, res ) =>
+{
+      const { id } = req.params
+      if ( !id ) return sendErrorResponse( res, 400, "Product Id is required" );
+      try {
+            const { name, category, slug, description, price,product_id } = req.body;
+            const product = await prisma.suplementryProduct.findFirstOrThrow( { where: { id, product_id } } );
+            product.name = name ? name : product.name
+            product.category = category ? category : product.category;
+            product.slug = slug ? slug : product.slug
+            product.description = description ? description : product.description
+            product.price = price ? parseFloat( price ) : product.price
+            
+            const editedProduct = await prisma.suplementryProduct.update( {
+                  where: { id, product_id },
+                  data: product
+            } );
+
+            return sendSuccessResponse( res, 200, "Product edited", { product: editedProduct } );
+      } catch (error) {
+            console.error( error );
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                  if (error.code === "P2025")
+                  return sendErrorResponse(res,404,"Product not found", null)
+            }
+            return sendErrorResponse( res, 500, "Internal server error", error );
+      }
+}
+
+
+
+const updateImage = async ( req, res ) =>
+{
+      const { id, product_id } = req.query;
+      const { suplementryImage } = req.file;
+      if ( !id || !suplementryImage ) return sendErrorResponse( res, 400, "Product Id or suplementry image is required" );
+      try {
+            let previous;
+            const product = await prisma.suplementryProduct.findFirstOrThrow( { where: { id, product_id } } );
+
+            previous = product;
+
+            product.dp = suplementryImage.path;
+
+            await prisma.suplementryProduct.update( {
+                  where: {
+                        id,product_id
+                  },
+                  data: product
+            } )
+            
+            await fs.unlink( previous.dp );
+
+            return sendSuccessResponse( res, 202, "Profile image updated", product );
+
+      } catch (error) {
+            console.error( error );
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                  if (error.code === "P2025")
+                  return sendErrorResponse(res,404,"Product not found", null)
+            }
+            if (error.code === "ENOENT"){
+                  return sendSuccessResponse( res, 202, "Profile image updated", product );
+            }
+            return sendErrorResponse( res, 500, "Internal server error", error );
+      }
+}
 
 
 
 
-module.exports = { getSuplementryProduct, getSingleSuplementryProduct,deleteAllSuplementryProduct,deleteSuplementryProduct,createSuplementryProduct };
+
+module.exports = { getSuplementryProduct, getSingleSuplementryProduct,deleteAllSuplementryProduct,deleteSuplementryProduct,createSuplementryProduct,editSuplementryProdct, updateImage };
