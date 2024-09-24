@@ -23,6 +23,25 @@ const addTocart = async ( req, res ) =>
       }
 };
 
+const addAllToCart = async ( req, res ) =>
+{
+      const { cart } = req.body;
+      if ( cart ) return sendErrorResponse( res, 400, "All field is required" );
+      try {
+            const newItem = cart.map( item =>
+            {
+                  return {...item, userId: res.user.id}
+            })
+            const cartUpdate = await prisma.cartItem.createMany( {
+                  data: newItem
+            } )
+            return sendSuccessResponse( res, 201, "Item added to cart", { cart: cartUpdate } );
+      } catch ( error ) {
+            console.error(error);
+            return sendErrorResponse(res,500,"Internal server error",error)
+      }
+}
+
 const getCart = async ( req, res ) =>
 {
       try {
@@ -77,7 +96,7 @@ const deleteCartItem = async ( req, res ) =>
       if ( !id ) return sendErrorResponse( res, 400, "All Fiels are required" );
       try {
             await prisma.cartItem.delete( {
-                  where: { id },
+                  where: { id,userId:res.user.id },
             } )
             return sendSuccessResponse( res, 200, "Item removed successfully");
       } catch ( error ) {
@@ -110,4 +129,4 @@ const clearAll = async ( req, res ) =>
 };
 
 
-module.exports = {getCart,addTocart,editCartItem,deleteCartItem,clearAll}
+module.exports = {getCart,addTocart,editCartItem,deleteCartItem,clearAll,addAllToCart}

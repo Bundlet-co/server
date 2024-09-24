@@ -17,7 +17,12 @@ const createCategory = async ( req, res ) =>
             } );
 
             return sendSuccessResponse( res, 201, "Category was created successfully", { category } );
-      } catch (error) {
+      } catch ( error ) {
+            console.error(error);
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                  if ( error.code === "P2002" )
+                        return sendErrorResponse(res,409,"Category Already exist")
+            }
             return sendErrorResponse( res, 500, "Internal server error", error );
       }
 };
@@ -25,7 +30,11 @@ const createCategory = async ( req, res ) =>
 const getCategories = async ( req, res ) =>
 {
       try {
-            const category = await prisma.category.findMany();
+            const category = await prisma.category.findMany( {
+                  include: {
+                        subCategory:true
+                  }
+            });
             return sendSuccessResponse( res, 200, "Categories found", { category } );
 
       } catch ( error ) {

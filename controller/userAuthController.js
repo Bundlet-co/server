@@ -9,9 +9,10 @@ const prisma = new PrismaClient();
 
 const createUser = async ( req, res ) =>
 {
+      const { name, email, password, phone_number } = req.body;
+      if ( !name || !email || !password || !phone_number ) return res.status( 400 ).json( { message: "All feilds are required" } );
       try {
-            const { name, email, password, phone_number  } = req.body;
-            if ( !name || !email || !password || !phone_number ) return res.status( 400 ).json( { message: "All feilds are required" } );
+            
 
             const code = randomString({ length: 6, type: "numeric" });
 
@@ -79,7 +80,7 @@ const createUser = async ( req, res ) =>
                   </html>
                               `;
                   const subject = "Verify your account Bundlet!";
-                  const from = `Bundlet Support<${process.env.EMAIL}>`;
+                  const from = `Bundlet Support <${process.env.EMAIL}>`;
             await prisma.user.create( {
                   data: {
                         name,email,phone_number,password:hashedPassword,verification_code:code

@@ -9,6 +9,7 @@ const multer = require( 'multer' );
 const credentials = require( "./middlewares/credentials" );
 const corsOption = require( "./config/corsOption" );
 const { verifyJwt, verifyMerchant } = require( './middlewares/auth' );
+const { logout, logoutMerchant } = require( "./controller/logoutController" );
 const PORT = process.env.PORT || 3500;
 
 const app = express();
@@ -73,6 +74,7 @@ app.use( '/auth', require( './routes/userAuth' ) );
 app.use( '/refresh', require( "./routes/refresh" ) );
 app.use( '/verify', require( "./routes/userVerify" ) );
 app.use( '/product', require( "./routes/userProduct" ) );
+app.use( '/categories', require( './routes/userCategory' ) );
 
 
 //Merchant Routes without verification
@@ -85,19 +87,22 @@ app.use( '/merchant/verify', require( "./routes/verifyMerchant" ) );
 
 //User Routes with jwt verification
 app.use( verifyJwt );
-app.use('/profile',require("./routes/userProfile"))
+app.use( '/wishlist', require( "./routes/wishlist" ) );
+app.use( '/profile', require( "./routes/userProfile" ) );
 app.use( "/cart", require( "./routes/cart" ) );
-app.use("/order", require("./routes/userOrder"))
+app.use( "/order", require( "./routes/userOrder" ) );
+app.use( "/logout", logout );
 
 
 //Merchant Routes with jwt verification
 app.use( verifyMerchant );
-app.use("/merchant/profile",storeCp,require("./routes/merchantProfile"))
+app.use( "/merchant/profile", storeCp, require( "./routes/merchantProfile" ) );
 app.use( '/merchant/product',productCp, require( './routes/merchantProduct' ) );
 app.use( '/merchant/order', require( "./routes/merchantOrder" ) );
 app.use( '/merchant/suplementry', suplementryCp, require( './routes/merchantSupplementry' ) );
 app.use( '/merchant/category', require( './routes/merchantCategory' ) );
 app.use( '/merchant/subcategory', require( "./routes/merchantSubCategory" ) );
+app.use( '/merchant/logout', logoutMerchant );
 
 app.listen( PORT, () =>
 {

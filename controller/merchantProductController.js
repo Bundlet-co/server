@@ -10,7 +10,8 @@ const createProduct = async ( req, res ) =>
       const { dp, images, suplementryImage } = req.files;
       try {
             if ( !res.merchant.id ) return sendErrorResponse(res,401,"Not a merchant");
-            if ( !name || !category || !description || !price || !quantity || !discount_amount || !discount_type || !opening_date || !available_till || !delivery_duration || !dispatch_location || !dp || images.length < 3 ) return res.status( 400 ).json( { message: " Product name, category,description, price,quantity, discount_type, discount_amount, opening_date, available_till, delivery_duration, dispatch_location is required" } );
+            if ( !name || !category || !description || !price || !quantity || !discount_amount || !discount_type || !opening_date || !available_till || !delivery_duration || !dispatch_location || !dp ) return sendErrorResponse( res, 400, "Product name, category,description, price,quantity, discount_type, discount_amount, opening_date, available_till, delivery_duration, dispatch_location is required" );
+            if ( images.length < 3 ) return sendErrorResponse( res, 400, "image should be greater or equall to three", null );
             
             const newProduct = await prisma.product.create( {
                   data: {
@@ -34,6 +35,10 @@ const createProduct = async ( req, res ) =>
                         merchant_id: res.merchant.id
                   }
             } )
+
+            console.log(newProduct);
+
+            if ( !suplementry_product ) return sendSuccessResponse( res, 201, "Product created", { product:newProduct } );
             
             const suplementry = suplementry_product.map(async (product,index) =>
             {
@@ -75,7 +80,7 @@ const getProduct = async ( req, res ) =>
             const PAGE_NUMBER = 10;
             const productCount = await prisma.product.count( { where: { merchant_id: res.merchant.id } } );
 
-            if ( productCount === 0 ) return res.status( 200 ).json( { message: "No product was found for merchant" } );
+            if ( productCount === 0 ) return sendSuccessResponse(res,202,"Product empty",{products:[], count:0})
 
             const products = await prisma.product.findMany( {
                   where: { merchant_id: res.merchant.id },

@@ -11,10 +11,12 @@ const prisma = new PrismaClient();
 
 const createMerchant = async ( req, res ) =>
 {
+      const { name, email, password, address, phone } = req.body;
+      const  dp  = req.file;
+      if ( !name || !email || !password || !address || !phone || !dp ) return res.status( 400 ).json( { message: "All fields required" } );
       try {
-            const { name, email, password, address, phone } = req.body;
-            const {dp} = req.file
-            if ( !name || !email || !password || !address || !phone || !dp ) return res.status( 400 ).json( { message: "All fields required" } );
+            
+            
             const code = randomString({ length: 6, type: "numeric" });
 
             const hashedPassword = await argon.hash( password );
@@ -85,14 +87,16 @@ const createMerchant = async ( req, res ) =>
             
             await prisma.merchant.create( {
                   data: {
-                  name,email,phone,password:hashedPassword,address,dp:dp.path
+                        name, email, phone, password: hashedPassword, address, dp: dp.path,
+                        verification_code:code
                   }
             } )
             await sendMail( from, email, subject, html );
 
             return sendSuccessResponse( res, 201, "Merchant created", { email } );
 
-      } catch (e) {
+      } catch ( e ) {
+            console.error(e);
       if (e instanceof Prisma.PrismaClientKnownRequestError) {
             if ( e.code === "P2002" )
                   return sendErrorResponse(res,409,"Email Already exist")
@@ -184,10 +188,9 @@ const editMerchant = async ( req, res ) =>
 {
       try {
             const { id } = req.params;
-            const { name, address, website, bank_name, account_name, account_number, } = req.body;
+            const { name, address, website, bank_name, account_name, account_number, phone} = req.body;
 
             if ( !id ) return res.status( 400 ).json( { message: "Merchant Id is required" } );
-            await prisma.merchant.findUniqueOrThrow( { where: { id } } );
 
             const merchant = await prisma.merchant.update( {
                   where: { id },
@@ -198,6 +201,7 @@ const editMerchant = async ( req, res ) =>
                         bank_name,
                         account_name,
                         account_number,
+                        phone
                   }
             } );
             

@@ -21,6 +21,12 @@ enum OrderEventStatus {
   CANCELLED
 }
 
+enum ActivityStatus {
+  ONLINE
+  OFFLINE
+  BUSY
+}
+
 model User{
   id       String   @id @default(uuid())
   email    String   @unique
@@ -37,6 +43,7 @@ model User{
 
   orders    Order[]
   cartItem  CartItem[]
+  wishlists Wishlist[]
 
 }
 
@@ -58,6 +65,7 @@ model Merchant{
   resetPasswordToken String?
   isVerified         Boolean   @default(false)
   balance Int @default(0)
+  status  ActivityStatus @default(ONLINE)
   refresh_token String[] 
   
 
@@ -80,11 +88,12 @@ model Product {
   quantity   Int
   discount_type String?
   discount_amount Int?
-  opening_date DateTime?
+  opening_date String?
   available_till Int?
   delivery_duration Int
   dispatch_location String
   tags       String[]
+  inStock    Boolean @default(true)
   merchant Merchant  @relation(fields: [merchant_id], references: [id])
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
@@ -92,6 +101,7 @@ model Product {
   orderProduct OrderProduct[]
   suplementryProducts SuplementryProduct[]
   cartIntems CartItem[]
+  wishlists Wishlist[]
 }
 
 model SuplementryProduct{
@@ -110,20 +120,25 @@ model SuplementryProduct{
 
 model Category {
   id        String   @id @default(uuid())
-  name      String
+  name      String   @unique
   slug      String[]
+  status    Boolean @default(true)
   description String
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
+
+  subCategory SubCategory[]
 }
 
 model SubCategory {
   id        String   @id @default(uuid())
-  name      String
+  name      String   @unique
   slug      String[]
-  main_category String
+  category_id String
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
+
+  category Category @relation(fields: [category_id],references: [id])
 }
 
 model CartItem {
@@ -167,6 +182,15 @@ model OrderProduct {
   updatedAt DateTime @updatedAt
 
   @@map("order_products")
+}
+
+model Wishlist {
+  id        String   @id @default(uuid())
+  userId    String
+  product_id String
+
+  products Product   @relation(fields: [product_id],references: [id])
+  users User @relation(fields: [userId],references: [id])
 }
 
 model OrderEvents {

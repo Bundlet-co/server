@@ -7,17 +7,22 @@ const prisma = new PrismaClient();
 const createSubcategory = async ( req, res ) =>
 {
       try {
-            const { name, slug, main_category } = req.body;
-            if ( !name, !main_category ) return sendErrorResponse( res, 400, "All field is required", null );
+            const { name, slug, category_id } = req.body;
+            if ( !name, !category_id ) return sendErrorResponse( res, 400, "All field is required", null );
             
             const category = await prisma.subCategory.create( {
                   data: {
-                        name, main_category, slug
+                        name, category_id, slug
                   }
             } );
 
             return sendSuccessResponse( res, 201, "Category was created successfully", { category } );
-      } catch (error) {
+      }  catch ( error ) {
+            console.error(error);
+            if (e instanceof Prisma.PrismaClientKnownRequestError) {
+                  if ( error.code === "P2002" )
+                        return sendErrorResponse(res,409,"Category Already exist")
+            }
             return sendErrorResponse( res, 500, "Internal server error", error );
       }
 };
@@ -25,8 +30,8 @@ const createSubcategory = async ( req, res ) =>
 const getSubcategory = async ( req, res ) =>
 {
       try {
-            const { main_category } = req.query
-            if ( !main_category ) return sendErrorResponse( res, 400, "main category is required" );
+            const { category_id } = req.query
+            if ( !category_id ) return sendErrorResponse( res, 400, "main category is required" );
             const category = await prisma.subCategory.findMany({where:{main_category}});
             return sendSuccessResponse( res, 200, "Categories found", { category } );
 

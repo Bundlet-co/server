@@ -1,4 +1,5 @@
 const { Prisma, PrismaClient } = require( "@prisma/client" );
+const { sendErrorResponse, sendSuccessResponse } = require( "../utils/responseHelper" );
 
 const prisma = new PrismaClient();
 
@@ -47,5 +48,99 @@ const getSingleProduct = async ( req, res ) =>
       }
 };
 
+const getProductByCategory = async ( req, res ) =>
+{
+      const skip = +req.query.skip || 0;
+      const category = req.query.category;
+      if ( !category ) return sendErrorResponse( res, 400, "Category is required" );
+      try {
+            const PAGE_NUMBER = 10;
+            const count = await prisma.product.count( {
+                  where: {
+                        category:category.toLowerCase()
+                  }
+            } );
 
-module.exports = { getProduct, getSingleProduct };
+            if ( count === 0 ) return sendSuccessResponse( res, 200, "Category empty", { products: [], count } );
+
+            const products = await prisma.product.findMany( {
+                  where: {
+                        category
+                  },
+                  include: {
+                        suplementryProducts:true
+                  },
+                  skip,
+                  take:PAGE_NUMBER
+            } )
+
+            return sendSuccessResponse( res, 200, "Product fetched", { products, count } );
+      } catch ( error ) {
+            console.error(error);
+            return sendErrorResponse(res,500,"Internal server error",error)
+      }
+}
+
+const searchFilter = async ( req, res ) =>
+{
+      const { search, minPrice, maxPrice,skip } = req.query;
+      let whereClause = {};
+      try {
+            const PAGE_NUMBER = 10;
+            if ( search ) {
+                  whereClause.name = {
+                        contains: search,
+                        mode: "insensitive",
+                  };
+                  whereClause.description = {
+                        contains: search,
+                        mode: "insensitive",
+                  }
+            }
+            if ( minPrice ) whereClause.price = { gte: minPrice };
+            if ( maxPrice ) whereClause.price = { lte: maxPrice };
+
+            const count = await prisma.product.count( { where: whereClause } )
+            
+            if ( count === 0 ) return sendSuccessResponse( res, 200, "Category empty", { products: [], count } );
+
+            const products = await prisma.product.findMany( {
+                  where: whereClause,
+                  include: {
+                        suplementryProducts: true
+                  },
+                  skip: +skip || 0,
+                  take:PAGE_NUMBER
+            } )
+            
+            return sendSuccessResponse( res, 200, "Product fetched", { products, count } );
+      } catch ( error ) {
+            console.error(error);
+            return sendErrorResponse( res, 500, "Internal server error", error );
+      }
+}
+
+const getRandomProducts = async ( req, res ) =>
+{
+      try {
+            const PAGE_NUMBER = 3;
+            const count = await prisma.product.count();
+            if ( count === 0 ) return sendSuccessResponse( res, 200, "Category empty", { products: [], count } );
+
+            const randomOffset = Math.floor( Math.random() * count );
+            const adjustedOffset = Math.max( 0, randomOffset - PAGE_NUMBER );
+            const products = await prisma.product.findMany( {
+                  take: PAGE_NUMBER,
+                  skip: adjustedOffset
+            } )
+            
+            return sendSuccessResponse( res, 200, "fetched product carousel", { products, count } );
+      } catch ( error ) {
+            console.error(error);
+            return sendErrorResponse( res, 500, "Internal server error", error );
+      }
+}
+
+
+
+module.exports = { getProduct, getSingleProduct, getProductByCategory, getRandomProducts, searchFilter };

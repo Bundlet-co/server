@@ -1,6 +1,7 @@
 const { PrismaClient, Prisma } = require( "@prisma/client" );
 const { sendMail } = require( "../utils/sendMail" );
 const randomString = require("crypto-random-string");
+const { sendErrorResponse, sendSuccessResponse } = require( "../utils/responseHelper" );
 
 const prisma = new PrismaClient();
 
@@ -88,8 +89,10 @@ const verifyCode = async ( req, res ) =>
 
 const resendVerification = async ( req, res ) =>
 {
+      const { email } = req.params;
+      if(!email) return sendErrorResponse(res, "Email is required", 400);
       try {
-            const { email } = req.params;
+            
             const user = await prisma.user.findUniqueOrThrow( { where: { email:email } } );
             if ( user.isVerified ) return res.status( 202 ).json( { message: "User already verified" } );
             const code = randomString( { length: 6, type: "numeric" } );
@@ -164,7 +167,7 @@ const resendVerification = async ( req, res ) =>
                   verification_code: code
             }})
 
-            return res.status( 200 ).json( { message: "Verification mail was sent successfully" } );
+            return sendSuccessResponse(res,202,"Verification code has been sent")
       } catch (e) {
             if (e instanceof Prisma.PrismaClientKnownRequestError) {
                   if (e.code === "P2025")
