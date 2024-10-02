@@ -82,8 +82,7 @@ model Product {
   price      Float
   dp         String
   images     String[]
-  color      String[]
-  size       String[]
+  variation  Json?
   merchant_id String
   quantity   Int
   discount_type String?
@@ -92,7 +91,8 @@ model Product {
   available_till Int?
   delivery_duration Int
   dispatch_location String
-  tags       String[]
+  unit  String
+  product_type String
   inStock    Boolean @default(true)
   merchant Merchant  @relation(fields: [merchant_id], references: [id])
   createdAt DateTime         @default(now())
@@ -107,10 +107,8 @@ model Product {
 model SuplementryProduct{
   id        String   @id @default(uuid())
   name      String
-  category  String
-  slug      String[]
-  description String
   product_id  String
+  quantity    Int
   price      Float
   dp          String
 
@@ -202,4 +200,13 @@ model OrderEvents {
   updatedAt DateTime         @updatedAt
 
   @@map("order_events")
+}
+
+model DispatchLocation{
+  id        String           @id @default(uuid()) 
+  country   String
+  state     String
+  city      String
+  lga       String
+  address   String           @unique
 }

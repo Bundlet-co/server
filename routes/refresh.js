@@ -4,7 +4,6 @@ const router = express.Router();
 
 
 router.get( '/', refresh )
-router.get('/merchant', merchantRefresh)
 
 
 module.exports = router
