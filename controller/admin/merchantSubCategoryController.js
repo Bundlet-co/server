@@ -31,12 +31,12 @@ const getSubcategory = async ( req, res ) =>
 {
       try {
             const { category_id } = req.query
-            if ( !category_id ) return sendErrorResponse( res, 400, "main category is required" );
-            const category = await prisma.subCategory.findMany({where:{main_category}});
+            if ( !category_id ) {
+                  const category = await prisma.subCategory.findMany();
             return sendSuccessResponse( res, 200, "Categories found", { category } );
-
-
-
+            }
+            const category = await prisma.subCategory.findMany({where:{category_id}});
+            return sendSuccessResponse( res, 200, "Categories found", { category } );
       } catch ( error ) {
             return sendErrorResponse( res, 500, "Internal server error", error );
       }

@@ -56,7 +56,8 @@ const editCategories = async ( req, res ) =>
 
             const editedCatagory = await prisma.category.update( {
                   where: { id },
-                  data: product
+                  data: product,
+                  include:{subCategory:true}
             } );
 
             return sendSuccessResponse( res, 202, "Category updated", { category: editedCatagory } );
@@ -76,6 +77,7 @@ const deleteCategory = async ( req, res ) =>
       const { id } = req.params;
       if ( !id ) return sendErrorResponse( res, 400, "Category Id is needed" );
       try {
+            await prisma.subCategory.deleteMany({where:{category_id:id}})
             await prisma.category.delete( { where: { id } } );
             return sendSuccessResponse( res, 202, "Category deleted", null );
       } catch ( error ) {
