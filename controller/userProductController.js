@@ -57,7 +57,7 @@ const getProductByCategory = async ( req, res ) =>
             const PAGE_NUMBER = 10;
             const count = await prisma.product.count( {
                   where: {
-                        category:category.toLowerCase()
+                        category:category
                   }
             } );
 

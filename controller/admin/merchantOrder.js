@@ -20,13 +20,6 @@ const getOrders = async ( req, res ) =>
                                     }
                               }
                         }
-                  },
-                  include: {
-                        products: {
-                              include: {
-                                    product: true
-                              }
-                        }
                   }
             } ); // count of orders
 
@@ -42,8 +35,10 @@ const getOrders = async ( req, res ) =>
                   },
                   include: {
                         products: {
-                              include: {
-                                    product: true
+                              where: {
+                                    product: {
+                                          merchant_id: id
+                                    }
                               }
                         }
                   },
@@ -74,13 +69,6 @@ const getRecentOrder = async ( req, res ) =>
                                     }
                               }
                         }
-                  },
-                  include: {
-                        products: {
-                              include: {
-                                    product: true
-                              }
-                        }
                   }
             } ); // count of orders
             const orders = await prisma.order.findMany( {
@@ -95,8 +83,10 @@ const getRecentOrder = async ( req, res ) =>
                   },
                   include: {
                         products: {
-                              include: {
-                                    product: true
+                              where: {
+                                    product: {
+                                          merchant_id: id
+                                    }
                               }
                         }
                   },
@@ -128,13 +118,6 @@ const getRecentOrderReverse = async ( req, res ) =>
                                     product: {
                                           merchant_id: id
                                     }
-                              }
-                        }
-                  },
-                  include: {
-                        products: {
-                              include: {
-                                    product: true
                               }
                         }
                   }
@@ -191,13 +174,6 @@ const getOrderByStatus = async ( req, res ) =>
                                     },
                               },
                         },
-                  },
-                  include: {
-                        products: {
-                              include: {
-                                    product: true
-                              }
-                        }
                   }
             } );
 
@@ -215,8 +191,10 @@ const getOrderByStatus = async ( req, res ) =>
                   },
                   include: {
                         products: {
-                              include: {
-                                    product: true
+                              where: {
+                                    product: {
+                                          merchant_id: id
+                                    }
                               }
                         }
                   },
@@ -236,15 +214,19 @@ const updateStatus = async ( req, res ) =>
       const { id,status } = req.query
       
       try {
+            if (!id || !status) {
+                  return res.status(400).json({ message: "Both 'id' and 'status' are required" });
+            };
+
             const orders = await prisma.orderProduct.update( {
                   where: {
                         id
                   }, data: {
-                        status:status.toUpperCase()
+                        status:status.toUpperCase(),
                   }
             } );
 
-            await updateOrderStatus(id,status.toUpperCase())
+            await updateOrderStatus( id, status.toUpperCase() );
 
             return sendSuccessResponse(res,202,"Order Accepted", {orders})
       } catch (error) {

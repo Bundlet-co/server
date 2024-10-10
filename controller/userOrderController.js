@@ -17,9 +17,12 @@ const createOrder = async ( req, res ) =>
                         netAmount: parseFloat( netAmount ),
                         address,
                         products: {
-                              createMany: {
-                                    data: orderProduct
-                              }
+                              create:orderProduct.map((product)=>({
+                              productId: product.id,
+                              price: product.price,
+                              quantity: product.quantity,
+                              variation: product.variation ? JSON.parse(product.variation) : undefined,
+                        }))
                         }
                   }, include: {
                         products: {
@@ -157,7 +160,8 @@ const getOrder = async ( req, res ) =>
                         userId:res.user.id
                   },
                   include: {
-                        products: true
+                        products: true,
+                        events:true
                   },
                   skip,
                   take: PAGE_NUMBER
@@ -181,6 +185,9 @@ const getSingleOrder = async ( req, res ) =>
                   where: {
                         id,
                         userId: res.user.id
+                  }, include: {
+                        products:true,
+                        events:true
                   }
             } );
 

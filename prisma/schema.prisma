@@ -113,7 +113,8 @@ model SuplementryProduct{
   dp          String
 
 
-  product Product @relation(fields: [product_id], references: [id])
+  product Product @relation(fields: [product_id], references: [id],onDelete: Cascade)
+  cartItemSplementry CartItemSupplement[]
 }
 
 model Category {
@@ -136,26 +137,42 @@ model SubCategory {
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
-  category Category @relation(fields: [category_id],references: [id])
+  category Category @relation(fields: [category_id],references: [id],onDelete: Cascade)
 }
 
 model CartItem {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  productId String
-  product   Product  @relation(fields: [productId], references: [id])
-  quantity  Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                   String            @id @default(uuid())
+  userId               String
+  user                 User              @relation(fields: [userId], references: [id],onDelete: Cascade)
+  productId            String
+  product              Product           @relation(fields: [productId], references: [id],onDelete: Cascade)
+  quantity             Int
+  variation            Json?
+  supplementaryProducts CartItemSupplement[]
+  price                Float
+  total                Float
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
 
   @@map("cart_items")
+}
+
+model CartItemSupplement {
+  id         String   @id @default(uuid())
+  cartItemId String
+  productId  String
+
+  cartItem   CartItem @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
+  product    SuplementryProduct  @relation(fields: [productId], references: [id])
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model Order {
   id        String           @id @default(uuid())
   userId    String           @default(uuid())
-  user      User             @relation(fields: [userId], references: [id])
+  user      User             @relation(fields: [userId], references: [id],onDelete: Cascade)
   netAmount Decimal
   address   String
   status    OrderEventStatus @default(PENDING)
@@ -170,12 +187,13 @@ model Order {
 model OrderProduct {
   id        String   @id @default(uuid())
   orderId   String
-  order     Order    @relation(fields: [orderId], references: [id])
+  order     Order    @relation(fields: [orderId], references: [id],onDelete: Cascade)
   productId String
   price     Float
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id],onDelete: Cascade)
   status    OrderEventStatus @default(PENDING)
   quantity  Int
+  variation  Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -187,14 +205,14 @@ model Wishlist {
   userId    String
   product_id String
 
-  products Product   @relation(fields: [product_id],references: [id])
-  users User @relation(fields: [userId],references: [id])
+  products Product   @relation(fields: [product_id],references: [id],onDelete: Cascade)
+  users User @relation(fields: [userId],references: [id],onDelete: Cascade)
 }
 
 model OrderEvents {
   id        String           @id @default(uuid())
   orderId   String
-  order     Order            @relation(fields: [orderId], references: [id])
+  order     Order            @relation(fields: [orderId], references: [id],onDelete: Cascade)
   status    OrderEventStatus @default(PENDING)
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
