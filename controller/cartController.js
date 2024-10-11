@@ -121,7 +121,7 @@ const editCartItem = async ( req, res ) =>
                   }
             } )
 
-             if (supplementaryProducts && supplementaryProducts.length > 0) {
+            if (supplementaryProducts && supplementaryProducts.length > 0) {
                   // Clear existing supplementary products for the cart item
                   await prisma.cartItemSupplement.deleteMany({
                   where: { cartItemId: id },
