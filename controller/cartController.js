@@ -1,13 +1,29 @@
 const { Prisma, PrismaClient } = require( "@prisma/client" );
 const { sendErrorResponse, sendSuccessResponse } = require( "../utils/responseHelper" );
+const {v4:uuid} = require("uuid")
 
 const prisma = new PrismaClient();
 
 const addTocart = async ( req, res ) =>
 {
-      const { productId, quantity, variation,supplementaryProducts, price,total } = req.body;
+      const { productId, quantity, variation, supplementaryProducts, price, total } = req.body;
+      console.log(req.body)
       if ( !productId || !quantity || !price ) return sendErrorResponse( res, 400, "All field is required" );
       try {
+            const existcart = await prisma.cartItem.findMany( { where: { userId: res.user.id } } );
+            const isExist = existcart.find( item => item.productId === productId && item.variation?.variant === variation?.variant )
+            if ( isExist ) {
+                  const cart = await prisma.cartItem.update( {
+                        where: {
+                        id:isExist.id
+                        },
+                        data: {
+                              quantity: isExist.quantity + 1,
+                              total: isExist.price * ( isExist.quantity + 1 )
+                        }
+                  } )
+                  return sendSuccessResponse(res,201,"Item added to cart", {cart})
+            }
             const cart = await prisma.cartItem.create( {
                   data: {
                         userId: res.user.id,
@@ -18,7 +34,7 @@ const addTocart = async ( req, res ) =>
                         total: parseFloat(total),
                         supplementaryProducts: {
                               create: supplementaryProducts.map( ( productId ) => ( {
-                                    productId
+                                    productId:productId.id
                               }))
                         }
                   }
@@ -31,61 +47,89 @@ const addTocart = async ( req, res ) =>
       }
 };
 
-const addAllToCart = async ( req, res ) =>
-{
-      const { carts } = req.body;
-      if ( carts ) return sendErrorResponse( res, 400, "All field is required" );
-      try {
-            const cartItems = carts.map((item) => {
-                  const { supplementaryProducts, ...mainCartData } = item;
-                  return { ...mainCartData, userId: res.user.id };
-            });
+const addAllToCart = async (req, res) => {
+  const { carts } = req.body;
+  if (!carts) return sendErrorResponse(res, 400, "All fields are required");
 
-            // Add cart items to the database
-            await prisma.cartItem.createMany({
-                  data: cartItems,
-            });
+  try {
+    const newCartItems = await Promise.all(
+      carts.map(async (item) => {
+        const { supplementaryProducts, id, name, quantity, ...mainCartData } = item;
 
-            // Process supplementary products if provided
-            const supplementaryData = carts.flatMap((item) =>
-                  (item.supplementaryProducts || []).map((productId) => ({
-                  cartItemId: item.id,
-                  productId,
-                  }))
-            );
+        // Check if this cart item already exists
+        const existingCartItem = await prisma.cartItem.findFirst({
+          where: {
+            userId: res.user.id,
+                    productId:item.productId
+          },
+        });
 
-            if (supplementaryData.length > 0) {
-                  await prisma.cartItemSupplement.createMany({
-                  data: supplementaryData,
-                  });
-            }
+        if (existingCartItem && existingCartItem.variation.variant === item.variation.variant) {
+          // If item exists, update quantity and total
+          return await prisma.cartItem.update({
+            where: { id: existingCartItem.id },
+            data: {
+              quantity: { increment: quantity },
+              total: existingCartItem.total + (mainCartData.price * quantity),
+            },
+          });
+        } else {
+          // If item does not exist, create a new cart item
+          return await prisma.cartItem.create({
+            data: {
+              productId:item.productId,
+              userId: res.user.id,
+                      quantity,
+                      variation: item.variation,
+                      price: item.price,
+              total: mainCartData.price * quantity,
+            },
+          });
+        }
+      })
+    );
 
-            // Fetch the updated cart items with their supplementary products
-            const addedCartItemsWithSupplements = await prisma.cartItem.findMany({
-                  where: { userId: res.user.id },
-                  include: {
-                  product: true,
-                  supplementaryProducts: {
-                  include: { product: true },
-                  },
-                  },
-            });
-            return sendSuccessResponse( res, 201, "Item added to cart", { carts: addedCartItemsWithSupplements } );
-      } catch ( error ) {
-            console.error(error);
-            return sendErrorResponse(res,500,"Internal server error",error)
-      }
-}
+    // Extract IDs of newly created/updated cart items
+    const cartItemIds = newCartItems.map((cartItem) => cartItem.id);
+
+    // Add supplementary products for each cart item if applicable
+    const supplementaryData = carts.flatMap((cartItem, index) =>
+      (cartItem.supplementaryProducts || []).map((supplementary) => ({
+        cartItemId: cartItemIds[index],
+        productId: supplementary.id,
+        quantity: supplementary.quantity,
+        price: supplementary.price,
+      }))
+    );
+
+    if (supplementaryData.length > 0) {
+      await prisma.cartItemSupplement.createMany({
+        data: supplementaryData,
+      });
+    }
+
+    // Fetch updated cart items with supplementary products
+    const addedCartItemsWithSupplements = await prisma.cartItem.findMany({
+      where: { userId: res.user.id },
+      include: {
+        product: true,
+        supplementaryProducts: {
+          include: { product: true },
+        },
+      },
+    });
+
+    return sendSuccessResponse(res, 201, "Items added to cart", { carts: addedCartItemsWithSupplements });
+  } catch (error) {
+    console.error(error);
+    return sendErrorResponse(res, 500, "Internal server error", error);
+  }
+};
 
 const getCart = async ( req, res ) =>
 {
       try {
-            const skip = +req.query.skip || 0;
-            const PAGE_NUMBER = 10;
-            const count = await prisma.cartItem.count( {
-                  where: { userId: res.user.id }
-            } );
-            const cart = await prisma.cartItem.findMany( {
+            const carts = await prisma.cartItem.findMany( {
                   where: { userId: res.user.id },
                   include: {
                         product: true,
@@ -95,13 +139,11 @@ const getCart = async ( req, res ) =>
                               }
                         }
                   },
-                  skip,
-                  take: PAGE_NUMBER
             } );
             
-            if ( cart.length === 0 ) return sendSuccessResponse( res, 200, "Cart is empty", { cart,count } );
+            if ( carts.length === 0 ) return sendSuccessResponse( res, 200, "Cart is empty", { carts } );
 
-            return sendSuccessResponse( res, 200, "Cart retrived successfully", { cart } );
+            return sendSuccessResponse( res, 200, "Cart retrived successfully", { carts } );
       } catch ( error ) {
             console.error( error );
             return sendErrorResponse( res, 500, "Internal server error", error );
@@ -110,13 +152,12 @@ const getCart = async ( req, res ) =>
 
 const editCartItem = async ( req, res ) =>
 {
-      const { id, quantity,variation,supplementaryProducts,total } = req.body;
+      const { id, quantity,supplementaryProducts,total } = req.body;
       if ( !id || !quantity ) return sendErrorResponse( res, 400, "All Fiels are required" );
       try {
             await prisma.cartItem.update( {
                   where: { id, userId:res.user.id }, data: {
                         quantity: parseInt( quantity ),
-                        variation: variation || undefined,
                         total:parseFloat(total),
                   }
             } )

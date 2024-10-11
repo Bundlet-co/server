@@ -150,6 +150,7 @@ model CartItem {
   variation            Json?
   supplementaryProducts CartItemSupplement[]
   price                Float
+  batchId              String?
   total                Float
   createdAt            DateTime          @default(now())
   updatedAt            DateTime          @updatedAt
@@ -203,7 +204,7 @@ model OrderProduct {
 model Wishlist {
   id        String   @id @default(uuid())
   userId    String
-  product_id String
+  product_id String   @unique
 
   products Product   @relation(fields: [product_id],references: [id],onDelete: Cascade)
   users User @relation(fields: [userId],references: [id],onDelete: Cascade)

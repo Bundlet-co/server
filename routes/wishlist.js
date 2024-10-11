@@ -1,4 +1,4 @@
-const { getWishlist, addToWishlist, removeFromWishlist, addAllToWishlist } = require( "../controller/wishlistController" );
+const { getWishlist, addToWishlist, removeFromWishlist, addAllToWishlist, removeFromAllWishlist } = require( "../controller/wishlistController" );
 
 const router = require( "express" ).Router();
 
@@ -6,6 +6,7 @@ const router = require( "express" ).Router();
 router.route( '/' )
       .get( getWishlist )
       .post( addToWishlist )
+      .delete(removeFromAllWishlist)
 
 router.post('/add',addAllToWishlist)
 
