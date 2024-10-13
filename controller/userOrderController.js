@@ -176,41 +176,49 @@ const getOrder = async ( req, res ) =>
                         userId:res.user.id
                   },
                   include: {
-                        products: true,
-                        events:true
-                  },
-            } );
-            return sendSuccessResponse( res, 200, "Order has been fetched", { orders:order } );
-
-      } catch ( error ) {
-            console.error( error );
-            return sendErrorResponse( res, 500, "Internal server error", error );
-      }
-};
-
-
-const getSingleOrder = async ( req, res ) =>
-{
-      const { id } = req.params
-      if ( !id ) return sendErrorResponse( res, 400, "Order Id is required" );
-
-      try {
-            const order = await prisma.order.findFirstOrThrow( {
-                  where: {
-                        id,
-                        userId: res.user.id
-                  }, include: {
-                        products:true,
+                        products: {
+                              include: {
+                                    product:true
+                              }
+                        },
                         events:true
                   }
             } );
 
-            return sendSuccessResponse( res, 200, "Order found", { order } );
+            return sendSuccessResponse( res, 200, "Order found", { orders:order } );
       } catch ( error ) {
             console.error( error );
             return sendErrorResponse( res, 500, "Internal server error", error );
       }
 };
+
+const getSingleOrder = async ( req, res ) =>
+{
+      const { id } = req.params;
+      if ( !id ) return sendErrorResponse( res, 400, "Order Id is required" );
+      try {
+            const order = await prisma.order.findUniqueOrThrow( {
+                  where: {
+                        id
+                  },
+                  include: {
+                        products: {
+                              include: {
+                                    product:true
+                              }
+                        }
+                  }
+            } )
+
+            return sendSuccessResponse( res, 200, "Orders fetched", { orders: order })
+      } catch (error) {
+            if (error instanceof Prisma.PrismaClientKnownRequestError) {
+                  if (error.code === "P2025")
+                  return sendErrorResponse(res,404,"Product not found", null)
+            }
+            return sendErrorResponse(res,500,"Internal server error",error)
+      }
+}
 
 const cancelOrder = async ( req, res ) =>
 {
