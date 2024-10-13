@@ -10,6 +10,10 @@ const createOrder = async ( req, res ) =>
       try {
             const { userId, netAmount, address, orderProduct } = req.body;
             if ( !userId || !netAmount || !address || !orderProduct ) return sendErrorResponse( res, 400, "All field is required" );
+
+            const user = await prisma.user.findUniqueOrThrow( { where: { id: res.user.id } } );
+            
+            if ( user.balance < parseFloat( netAmount ) ) return sendErrorResponse( res, 400, "Insufficient Balance" );
             
             const order = await prisma.order.create( {
                   data: {
@@ -18,10 +22,10 @@ const createOrder = async ( req, res ) =>
                         address,
                         products: {
                               create:orderProduct.map((product)=>({
-                              productId: product.id,
+                              productId: product.productId,
                               price: product.price,
                               quantity: product.quantity,
-                              variation: product.variation ? JSON.parse(product.variation) : undefined,
+                              variation: product.variation ? product.variation : undefined,
                         }))
                         }
                   }, include: {
@@ -29,7 +33,7 @@ const createOrder = async ( req, res ) =>
                               include: {
                                     product: {
                                           include: {
-                                                merchant: true
+                                                merchant:true
                                           }
                                     }
                               }
@@ -48,8 +52,9 @@ const createOrder = async ( req, res ) =>
                               products:[]
                         }
                   };
-                  merchantProduct[ merchantId ].product.push( item );
+                  merchantProduct[ merchantId ].products.push( item );
             } )
+            console.log(merchantProduct);
             
             for ( const merchantId in merchantProduct ) {
                   const { merchant, products } = merchantProduct[ merchantId ];
@@ -141,9 +146,22 @@ const createOrder = async ( req, res ) =>
                   await sendMail(from,merchant.email,subject,html)
             }
 
+            const updated = await prisma.user.update( {
+                  where: {
+                        id: userId,
+                  },
+                  data: {
+                        balance: user.balance - parseFloat( netAmount )
+                  }
+            } );
+            delete updated.password;
+            delete updated.verification_code;
+            delete updated.refresh_token
+            delete updated.resetPasswordToken
 
 
-            return sendSuccessResponse( res, 201, "Order has been created", { order } );
+
+            return sendSuccessResponse( res, 201, "Order has been created", { order, user:updated } );
       } catch ( error ) {
             console.error( error );
             return sendErrorResponse( res, 500, "Internal server error", error );
@@ -152,8 +170,6 @@ const createOrder = async ( req, res ) =>
 
 const getOrder = async ( req, res ) =>
 {
-      const skip = +req.query.skip || 0;
-      const PAGE_NUMBER = 10;
       try {
             const order = await prisma.order.findMany( {
                   where: {
@@ -163,10 +179,8 @@ const getOrder = async ( req, res ) =>
                         products: true,
                         events:true
                   },
-                  skip,
-                  take: PAGE_NUMBER
             } );
-            return sendSuccessResponse( res, 200, "Order has been fetched", { order } );
+            return sendSuccessResponse( res, 200, "Order has been fetched", { orders:order } );
 
       } catch ( error ) {
             console.error( error );

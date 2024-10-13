@@ -186,7 +186,7 @@ const editUser = async ( req, res ) =>
 
             user.phone_number = phone_number
             user.name = name
-            user.address = address && user.address !== null ? [...user.address, {id:user.address.length +1, address}]: address && user.address === null ? [{id:1,address}] : user.address;
+            user.address = address ? address : user.address;
 
             const updated = await prisma.user.update( { where: { id }, data: user } );
 

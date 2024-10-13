@@ -37,6 +37,7 @@ model User{
   refresh_token String[]
   verification_code  String?
   resetPasswordToken String?
+  balance Float @default(0)
   isVerified         Boolean   @default(false)
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
@@ -98,7 +99,7 @@ model Product {
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
 
-  orderProduct OrderProduct[]
+  OrderProduct OrderProduct[]
   suplementryProducts SuplementryProduct[]
   cartIntems CartItem[]
   wishlists Wishlist[]
@@ -182,7 +183,6 @@ model Order {
   products  OrderProduct[]
   events    OrderEvents[]
 
-  @@map("orders")
 }
 
 model OrderProduct {
@@ -198,7 +198,6 @@ model OrderProduct {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("order_products")
 }
 
 model Wishlist {
