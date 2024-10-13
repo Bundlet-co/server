@@ -24,7 +24,7 @@
   },
   "scripts": {
     "dev": "nodemon server",
-    "start": "prisma db push && pm2 start server.js --name Bundlet && pm2 log Bundlet",
+    "start": "prisma db push --accept-data-loss && pm2 start server.js --name Bundlet && pm2 log Bundlet",
     "db-update": "prisma db push"
   },
   "devDependencies": {
