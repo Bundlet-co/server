@@ -41,6 +41,20 @@ const createOrder = async ( req, res ) =>
                   }
             } );
 
+            await Promise.all(order.products.map( async ( item ) =>
+            {
+                  const product = await prisma.product.findUniqueOrThrow( { where: { id: item.productId } } )
+                  product.quantity -= item.quantity
+                  if ( product.quantity < 1 ) {
+                        product.inStock = false
+                  }
+                  await prisma.product.update( {
+                        where: {
+                              id:item.productId
+                        },
+                        data: product
+                  })
+            }))
             const merchantProduct = {};
 
             order.products.forEach( item =>

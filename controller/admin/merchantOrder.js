@@ -8,20 +8,7 @@ const getOrders = async ( req, res ) =>
 {
       try {
             const { id } = res.merchant;
-            const skip = +req.query.skip || 0;
-            const PAGE_NUMBER = 10;
             if ( !id ) return res.status( 400 ).json( { message: "Merchant Id is required" } );
-            const count = await prisma.order.count( {
-                  where: {
-                        products: {
-                              some: {
-                                    product: {
-                                          merchant_id: id
-                                    }
-                              }
-                        }
-                  }
-            } ); // count of orders
 
             const orders = await prisma.order.findMany( {
                   where: {
@@ -35,18 +22,17 @@ const getOrders = async ( req, res ) =>
                   },
                   include: {
                         products: {
-                              where: {
-                                    product: {
-                                          merchant_id: id
-                                    }
+                              include: {
+                                    product: true
                               }
-                        }
+                        },
+                        user: true
                   },
-                  skip,
-                  take:PAGE_NUMBER
             } );
 
-            return sendSuccessResponse( res, 202, "Orders Found", { orders, count } );
+            console.log( orders[0].products[0].product);
+
+            return sendSuccessResponse( res, 202, "Orders Found", { orders } );
       } catch ( error ) {
             console.error( error );
             return sendErrorResponse( res, 500, "Internal server error", error );

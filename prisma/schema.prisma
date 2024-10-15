@@ -37,7 +37,7 @@ model User{
   refresh_token String[]
   verification_code  String?
   resetPasswordToken String?
-  balance Float @default(0)
+  balance Float @default(300000)
   isVerified         Boolean   @default(false)
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt

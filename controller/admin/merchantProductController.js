@@ -36,9 +36,6 @@ const createProduct = async ( req, res ) =>
                         merchant_id: res.user.id
                   }
             } )
-
-            console.log(newProduct);
-
             if ( !suplementry_product ) return sendSuccessResponse( res, 201, "Product created", { product:newProduct } );
             
             const supProduct = JSON.parse(suplementry_product)
@@ -102,7 +99,7 @@ const getProduct = async ( req, res ) =>
 const updateProduct = async ( req, res ) =>
 {
       try {
-            const { name, category, slug, description, price, color, size, quantity, discount_type, discount_amount, delivery_duration, dispatch_location, tags } = req.body;
+            const { name, category, slug, description, price,  quantity,variation, discount_type, discount_amount, opening_date, available_till, delivery_duration, dispatch_location,unit,product_type } = req.body;
             const { id } = req.params;
             
             if ( !id ) return sendErrorResponse(res,400,"Product Id is required");
@@ -114,15 +111,17 @@ const updateProduct = async ( req, res ) =>
                         category,
                         slug,
                         description,
-                        price:parseFloat(price),
-                        color,
-                        size,
-                        quantity,
-                        discount_amount,
+                        price: parseFloat( price ),
+                        quantity: parseInt( quantity ),
                         discount_type,
-                        delivery_duration,
+                        discount_amount: parseFloat(discount_amount),
+                        available_till: parseInt( available_till ),
+                        delivery_duration: parseInt( delivery_duration ),
                         dispatch_location,
-                        tags
+                        unit,
+                        product_type,
+                        variation: variation,
+                        opening_date,
                   }
             } )
             
@@ -200,30 +199,36 @@ const deleteProduct = async ( req, res ) =>
 
 
 const uploadImageAndDp = async ( req, res ) =>
-{
+{const { dp, images } = req.files;
       try {
             const { id } = req.params;
 
-            let previous;
+            
             if ( !id ) return sendErrorResponse(res,400,"Product Id is required");
-            const { dp, images } = req.files;
 
             const product = await prisma.product.findUniqueOrThrow( { where: { id } } );
-            previous = product
+            const previous = await prisma.product.findUniqueOrThrow( { where: { id } } );
 
             product.dp = dp ? dp.path : product.dp
-            if ( product.images.length === 5 || ( product.images.length + images.length ) > 5 ) return res.status( 400 ).json( { message: "Product images should be less than 5 in total" } );
-            product.images = images ? [ ...product.images, images ] : product.images
+            if ( images && images.length >0 ) {
+                  if ( product.images.length === 5 || ( product.images.length + images.length ) > 5 ) return res.status( 400 ).json( { message: "Product images should be less than 5 in total" } );
+                  product.images = images ? [ ...product.images, images ] : product.images
+            }
             
             const editedProduct = await prisma.product.update( {
                   where: {
                         id
+                  }, data: {
+                        dp: dp ? dp.path : previous.dp,
+                        images:images ? [...previous.images,...images.map(image=> image.path)]: previous.images
                   }
             } )
             
             if ( dp ) {
                   await fs.unlink(previous.dp)
             }
+            console.log( editedProduct );
+            console.log(dp.path);
             return sendSuccessResponse( res, 202, "Product updated successfully", { product: editedProduct } );
       } catch (e) {
             if (e instanceof Prisma.PrismaClientKnownRequestError) {
