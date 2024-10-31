@@ -30,7 +30,7 @@ app.use( express.static( "public" ) );
 
 //Multer for Merchant and product
 const storeStorage = multer.diskStorage( {
-  destination: "/temp/public/images/vendors",
+  destination: "/tmp/public/images/vendors",
   filename: ( req, file, cb ) =>
   {
     const uniqueSuffix = Date.now() + "-" + Math.round( Math.random() * 1e9 );
@@ -39,7 +39,7 @@ const storeStorage = multer.diskStorage( {
 } );
 
 const productStorage = multer.diskStorage( {
-  destination: "/temp/public/images/products",
+  destination: "/tmp/public/images/products",
   filename: ( req, file, cb ) =>
   {
     const uniqueSuffix = Date.now() + "-" + Math.round( Math.random() * 1e9 );
@@ -48,7 +48,7 @@ const productStorage = multer.diskStorage( {
 } );
 
 const suplementryStorage = multer.diskStorage( {
-  destination: "/temp/public/images/suplementry",
+  destination: "/tmp/public/images/suplementry",
   filename: ( req, file, cb ) =>
   {
     const uniqueSuffix = Date.now() + "-" + Math.round( Math.random() * 1e9 );
