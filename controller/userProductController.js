@@ -34,6 +34,7 @@ const getFlashDeals = async ( req, res ) =>
       try {
             const skip = +req.query.skip || 0;
             const PAGE_NUMBER = 10;
+            const currentDate = new Date();
             const productCount = await prisma.product.count( {
                   where: {
                         AND: [
@@ -58,7 +59,7 @@ const getFlashDeals = async ( req, res ) =>
 
             if ( productCount === 0 ) return res.status( 200 ).json( { message: "No product was found for user" } );
             
-            const currentDate = new Date();
+            
 
             const products = await prisma.product.findMany( {
                   where: {
