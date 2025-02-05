@@ -77,7 +77,7 @@ const suplementryCp = suplementryUpload.single( "suplementryImage" );
 //User Route without JWT verification
 app.get( '/', ( req, res ) =>
 {
-  res.status( 301 ).redirect( process.env.FRONTEND_URL );
+  res.status( 301 ).redirect( process.env.LANDING_URL );
 } );
 app.use( '/auth', require( './routes/userAuth' ) );
 app.use( '/refresh', require( "./routes/refresh" ) );
