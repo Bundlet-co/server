@@ -57,7 +57,7 @@ const getFlashDeals = async ( req, res ) =>
                   },
             });
 
-            if ( productCount === 0 ) return res.status( 200 ).json( { message: "No product was found for user" } );
+            if ( productCount === 0 ) return res.status( 200 ).json( { message: "No product was found for user", products:[], count: productCount  } );
             
             
 
