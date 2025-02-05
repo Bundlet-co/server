@@ -194,7 +194,7 @@ const searchFilter = async ( req, res ) =>
       }
 }
 
-const getRandomProducts = async ( req, res ) =>
+const getCarousel = async ( req, res ) =>
 {
       try {
             const PAGE_NUMBER = 3;
@@ -215,6 +215,27 @@ const getRandomProducts = async ( req, res ) =>
       }
 }
 
+const getRandomProducts = async ( req, res ) =>
+{
+      try {
+            const PAGE_NUMBER = 10;
+            const count = await prisma.product.count();
+            if ( count === 0 ) return sendSuccessResponse( res, 200, "Category empty", { products: [], count } );
+
+            const randomOffset = Math.floor( Math.random() * count );
+            const adjustedOffset = Math.max( 0, randomOffset - PAGE_NUMBER );
+            const products = await prisma.product.findMany( {
+                  take: PAGE_NUMBER,
+                  skip: adjustedOffset
+            } )
+            
+            return sendSuccessResponse( res, 200, "fetched product carousel", { products, count } );
+      } catch ( error ) {
+            console.error(error);
+            return sendErrorResponse( res, 500, "Internal server error", error );
+      }
+}
 
 
-module.exports = { getProduct, getSingleProduct, getProductByCategory, getRandomProducts, searchFilter,getFlashDeals };
+
+module.exports = { getProduct, getSingleProduct, getProductByCategory, getRandomProducts, searchFilter,getFlashDeals,getCarousel };
