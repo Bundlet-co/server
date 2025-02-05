@@ -11,7 +11,7 @@ const getProduct = async ( req, res ) =>
             const PAGE_NUMBER = 10;
             const productCount = await prisma.product.count();
 
-            if ( productCount === 0 ) return res.status( 200 ).json( { message: "No product was found for user" } );
+            if ( productCount === 0 ) return res.status( 200 ).json( { message: "No product was found for user",products:[], count: productCount } );
 
             const products = await prisma.product.findMany( {
                   include: {
