@@ -13,7 +13,7 @@ const createMerchant = async ( req, res ) =>
 {
       const { name, email, password, address, phone } = req.body;
       const dp = req.file;
-      if ( !name || !email || !password || !address || !phone || !dp ) return res.status( 400 ).json( { message: "All fields required",name, email, password, address, phone ,dp } );
+      if ( !name || !email || !password || !address || !phone || !dp ) return res.status( 400 ).json( { data:{name, email, password, address, phone ,dp},message: "All fields required" } );
       try {
             
             
