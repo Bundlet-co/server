@@ -6,21 +6,10 @@ const prisma = new PrismaClient();
 const updateOrderStatus = async ( orderId,status ) =>
 {
       try {
-            const orderProducts = await prisma.orderProduct.findMany( { where: orderId } );
-
-            const checkStatus = orderProducts.every(
-                  ( product ) => product.status === status.toUpperCase()
-            )
-            if ( checkStatus ) {
-                  await prisma.order.update( {
-                        where: {
-                              id:orderId
-                        },
-                        data: {
-                              status:status.toUpperCase()
-                        }
-                  } )
-            }
+            await prisma.orderProduct.updateMany( {
+                  where: { orderId },
+                  data: { status: status.toUpperCase() }
+            })
             return console.log("updated");
       } catch (error) {
             console.error( error );

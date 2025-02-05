@@ -26,11 +26,17 @@ const getOrders = async ( req, res ) =>
                                     product: true
                               }
                         },
-                        user: true
+                        user: {
+                              select: {
+                                    name: true,
+                                    email: true,
+                                    phone_number: true,
+                                    address: true
+                              }
+                        }
                   },
             } );
 
-            console.log( orders[0].products[0].product);
 
             return sendSuccessResponse( res, 202, "Orders Found", { orders } );
       } catch ( error ) {
@@ -43,8 +49,6 @@ const getRecentOrder = async ( req, res ) =>
 {
       try {
             const { id } = res.merchant;
-            const skip = +req.query.skip || 0;
-            const PAGE_NUMBER = 10;
             if ( !id ) return res.status( 400 ).json( { message: "Merchant Id is required" } );
             const count = await prisma.order.count( {
                   where: {
@@ -74,13 +78,19 @@ const getRecentOrder = async ( req, res ) =>
                                           merchant_id: id
                                     }
                               }
+                        },
+                        user: {
+                              select: {
+                                    name: true,
+                                    email: true,
+                                    phone_number: true,
+                                    address: true
+                              }
                         }
                   },
                   orderBy: {
                         createdAt: "desc"
                   },
-                  skip,
-                  take:PAGE_NUMBER
             } );
 
             return sendSuccessResponse( res, 202, "Recent Orders Found", { orders, count } );
@@ -94,8 +104,6 @@ const getRecentOrderReverse = async ( req, res ) =>
 {
       try {
             const { id } = res.merchant;
-            const skip = +req.query.skip || 0;
-            const PAGE_NUMBER = 10;
             if ( !id ) return res.status( 400 ).json( { message: "Merchant Id is required" } );
             const count = await prisma.order.count( {
                   where: {
@@ -123,13 +131,19 @@ const getRecentOrderReverse = async ( req, res ) =>
                               include: {
                                     product: true
                               }
+                        },
+                        user: {
+                              select: {
+                                    name: true,
+                                    email: true,
+                                    phone_number: true,
+                                    address: true
+                              }
                         }
                   },
                   orderBy: {
                         createdAt: "asc"
                   },
-                  skip,
-                  take:PAGE_NUMBER
             } );
 
             return sendSuccessResponse( res, 202, "Recent Orders Found", { orders, count } );
@@ -143,9 +157,7 @@ const getOrderByStatus = async ( req, res ) =>
 {
       try {
             const { id } = res.merchant;
-            const skip = +req.query.skip || 0;
             const status = req.query.status
-            const PAGE_NUMBER = 10;
 
             if ( !status ) return res.status( 400 ).json( { message: "Status filter required" } );
 
@@ -182,13 +194,54 @@ const getOrderByStatus = async ( req, res ) =>
                                           merchant_id: id
                                     }
                               }
+                        },
+                        user: {
+                              select: {
+                                    name: true,
+                                    email: true,
+                                    phone_number: true,
+                                    address: true
+                              }
                         }
                   },
-                  skip,
-                  take:PAGE_NUMBER
             } );
 
             return sendSuccessResponse( res, 202, "Orders Found", { orders, count } );
+      } catch (error) {
+            console.error( error );
+            return sendErrorResponse( res, 500, "Internal server error", error );
+      }
+}
+const getSingleOrder = async ( req, res ) =>
+{
+      try {
+            const { id } = req.params
+            if (!id ) {
+                  return res.status(400).json({ message: "Id is required" });
+            };
+            const order = await prisma.order.findUniqueOrThrow( {
+                  where: {
+                        id
+                  },
+                  include: {
+                        products: {
+                              include: {
+                                    product: true
+                              }
+                        },
+                        user: {
+                              select: {
+                                    name: true,
+                                    email: true,
+                                    phone_number: true,
+                                    address: true
+                              }
+                        }
+                  },
+            } )
+
+            
+            return sendSuccessResponse(res,202,"Order Found",{order})
       } catch (error) {
             console.error( error );
             return sendErrorResponse( res, 500, "Internal server error", error );
@@ -204,17 +257,40 @@ const updateStatus = async ( req, res ) =>
                   return res.status(400).json({ message: "Both 'id' and 'status' are required" });
             };
 
-            const orders = await prisma.orderProduct.update( {
+            await prisma.order.update( {
                   where: {
                         id
                   }, data: {
                         status:status.toUpperCase(),
                   }
-            } );
+            } ); 
+
+            const order = await prisma.order.findUniqueOrThrow( {
+                  where: {
+                        id
+                  },
+                  include: {
+                        products: {
+                              where: {
+                                    product: {
+                                          merchant_id: id
+                                    }
+                              }
+                        },
+                        user: {
+                              select: {
+                                    name: true,
+                                    email: true,
+                                    phone_number: true,
+                                    address: true
+                              }
+                        }
+                  },
+            })
 
             await updateOrderStatus( id, status.toUpperCase() );
 
-            return sendSuccessResponse(res,202,"Order Accepted", {orders})
+            return sendSuccessResponse(res,202,"Order Status Updated", {order})
       } catch (error) {
             console.error( error );
             return sendErrorResponse( res, 500, "Internal server error", error );
@@ -223,4 +299,4 @@ const updateStatus = async ( req, res ) =>
 
 
 
-module.exports = {getOrders,getRecentOrder,getOrderByStatus, getRecentOrderReverse,updateStatus}
+module.exports = {getOrders,getRecentOrder,getOrderByStatus, getRecentOrderReverse,updateStatus,getSingleOrder}

@@ -10,6 +10,8 @@ const credentials = require( "./middlewares/credentials" );
 const corsOption = require( "./config/corsOption" );
 const { verifyJwt, verifyMerchant } = require( './middlewares/auth' );
 const { logout, logoutMerchant } = require( "./controller/logoutController" );
+const { v2: cloudinary } = require( "cloudinary" )
+const {CloudinaryStorage} = require("multer-storage-cloudinary")
 const PORT = process.env.PORT || 3500;
 
 const app = express();
@@ -17,6 +19,13 @@ app.use(compression({
   level: 8,
   threshold: 1024,
 } ) );
+
+cloudinary.config( {
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret:process.env.API_SECRET
+})
+
 
 // Middlewares
 app.use(credentials);
@@ -29,32 +38,32 @@ app.use( cookieParser() );
 app.use( express.static( "public" ) );
 
 //Multer for Merchant and product
-const storeStorage = multer.diskStorage( {
-  destination: "./public/images/vendors",
-  filename: ( req, file, cb ) =>
-  {
-    const uniqueSuffix = Date.now() + "-" + Math.round( Math.random() * 1e9 );
-    cb( null, file.fieldname + '-' + uniqueSuffix + file.originalname );
+const storeStorage = new CloudinaryStorage( {
+  cloudinary,
+  params: {
+    folder: "bundlet/vendors",
+    allowedFormats: [ "jpg", "png", "jpeg", "webp" ],
+    transformation:[{width:500,height:500,crop:"limit"}]
   }
-} );
+})
 
-const productStorage = multer.diskStorage( {
-  destination: "./public/images/products",
-  filename: ( req, file, cb ) =>
-  {
-    const uniqueSuffix = Date.now() + "-" + Math.round( Math.random() * 1e9 );
-    cb( null, file.fieldname + '-' + uniqueSuffix + file.originalname );
+const productStorage = new CloudinaryStorage( {
+  cloudinary,
+  params: {
+    folder: "bundlet/products",
+    allowedFormats: [ "jpg", "png", "jpeg", "webp" ],
+    transformation:[{width:500,height:500,crop:"limit"}]
   }
-} );
+})
 
-const suplementryStorage = multer.diskStorage( {
-  destination: "./public/images/suplementry",
-  filename: ( req, file, cb ) =>
-  {
-    const uniqueSuffix = Date.now() + "-" + Math.round( Math.random() * 1e9 );
-    cb( null, file.fieldname + '-' + uniqueSuffix + file.originalname );
+const suplementryStorage = new CloudinaryStorage( {
+  cloudinary,
+  params: {
+    folder: "bundlet/suplementry",
+    allowedFormats: [ "jpg", "png", "jpeg", "webp" ],
+    transformation:[{width:500,height:500,crop:"limit"}]
   }
-} );
+})
 
 const storeUpload = multer( { storage: storeStorage } );
 const storeCp = storeUpload.single( 'dp' );

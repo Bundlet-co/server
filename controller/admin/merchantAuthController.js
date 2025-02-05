@@ -12,7 +12,7 @@ const prisma = new PrismaClient();
 const createMerchant = async ( req, res ) =>
 {
       const { name, email, password, address, phone } = req.body;
-      const  dp  = req.file;
+      const dp = req.file;
       if ( !name || !email || !password || !address || !phone || !dp ) return res.status( 400 ).json( { message: "All fields required" } );
       try {
             

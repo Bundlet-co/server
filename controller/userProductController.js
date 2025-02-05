@@ -1,5 +1,6 @@
 const { Prisma, PrismaClient } = require( "@prisma/client" );
 const { sendErrorResponse, sendSuccessResponse } = require( "../utils/responseHelper" );
+const { addDays,parseISO } = require( "date-fns" );
 
 const prisma = new PrismaClient();
 
@@ -26,6 +27,78 @@ const getProduct = async ( req, res ) =>
             return sendErrorResponse(res,500,"Internal server error",error)
       }
 };
+
+
+const getFlashDeals = async ( req, res ) =>
+{
+      try {
+            const skip = +req.query.skip || 0;
+            const PAGE_NUMBER = 10;
+            const productCount = await prisma.product.count( {
+                  where: {
+                        AND: [
+                              {
+                                    opening_date: {
+                                          lte: currentDate.toISOString(), // Opening date must be in the past
+                                    },
+                              },
+                              {
+                                    available_till: {
+                                          not: null, // Ensure available_till is set
+                                    },
+                              },
+                              {
+                                    available_till: {
+                                          gt: 0, // Ensure available_till is greater than 0
+                                    },
+                              },
+                        ],
+                  },
+            });
+
+            if ( productCount === 0 ) return res.status( 200 ).json( { message: "No product was found for user" } );
+            
+            const currentDate = new Date();
+
+            const products = await prisma.product.findMany( {
+                  where: {
+                        AND: [
+                              {
+                                    opening_date: {
+                                          lte: currentDate.toISOString(), // Opening date must be in the past
+                                    },
+                              },
+                              {
+                                    available_till: {
+                                          not: null, // Ensure available_till is set
+                                    },
+                              },
+                              {
+                                    available_till: {
+                                          gt: 0, // Ensure available_till is greater than 0
+                                    },
+                              },
+                        ],
+                  },
+                  include: {
+                        suplementryProducts: true
+                  },
+                  skip,
+                  take: PAGE_NUMBER,
+            } );
+
+            const filteredProduct = products.filter( product =>
+            {
+                  const openingDate = parseISO( product.opening_date );
+                  const availableUntilDate = addDays( openingDate, product.available_till || 0 );
+                  return availableUntilDate >= currentDate;
+            } )
+            return sendSuccessResponse( res, 202, "Prodct fetched", { products:filteredProduct, count: productCount } );
+      } catch (error) {
+            console.error(error);
+            return sendErrorResponse(res,500,"Internal server error",error)
+      }
+}
 
 const getSingleProduct = async ( req, res ) =>
 {
@@ -143,4 +216,4 @@ const getRandomProducts = async ( req, res ) =>
 
 
 
-module.exports = { getProduct, getSingleProduct, getProductByCategory, getRandomProducts, searchFilter };
+module.exports = { getProduct, getSingleProduct, getProductByCategory, getRandomProducts, searchFilter,getFlashDeals };
