@@ -1,8 +1,16 @@
 const { PrismaClient, Prisma } = require( '@prisma/client' );
 const { sendSuccessResponse, sendErrorResponse } = require( '../../utils/responseHelper' );
 const fs = require( "fs" ).promises;
+const { v2: cloudinary } = require( "cloudinary" );
+const { extractPublicId } = require( '../../utils/extract' );
 
 const prisma = new PrismaClient();
+
+cloudinary.config( {
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret:process.env.API_SECRET
+})
 
 const createProduct = async ( req, res ) =>
 {
@@ -169,16 +177,19 @@ const deleteProduct = async ( req, res ) =>
             await prisma.suplementryProduct.deleteMany( { where: { product_id: id } } );
             const product = await prisma.product.delete( { where: { id } } );
 
-            await fs.unlink( product.dp )
-            product.images.map( async ( image ) =>
+            const dpPublicId = extractPublicId( product.dp )
+            await cloudinary.uploader.destroy(dpPublicId)
+            Promise.all(product.images.map( async ( image ) =>
             {
-                  await fs.unlink(image)
-            } )
+                  const plubicId = extractPublicId(image)
+                  await cloudinary.uploader.destroy(plubicId)
+            } ))
 
-            suplementry.map(async item =>
+            Promise.all(suplementry.map(async item =>
             {
-                  await fs.unlink(item.dp)
-            } )
+                  const plubicId = extractPublicId(item.dp)
+                  await cloudinary.uploader.destroy(plubicId)
+            } ))
             
             
 
@@ -225,7 +236,8 @@ const uploadImageAndDp = async ( req, res ) =>
             } )
             
             if ( dp ) {
-                  await fs.unlink(previous.dp)
+                  const dpPublicId = extractPublicId( product.dp )
+                  await cloudinary.uploader.destroy(dpPublicId)
             }
             console.log( editedProduct );
             console.log(dp.path);
@@ -254,7 +266,8 @@ const deleteImage = async ( req, res ) =>
             
             if ( !image ) return sendErrorResponse(res,404,"Product Image not found", null)
             
-            await fs.unlink( image );
+            const dpPublicId = extractPublicId( image )
+            await cloudinary.uploader.destroy(dpPublicId)
             product.images = product.images.filter( img => img !== image )
             
             await prisma.product.update( { where: { id }, data: product } )
