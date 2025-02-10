@@ -24,6 +24,9 @@ const addTocart = async ( req, res ) =>
                   } )
                   return sendSuccessResponse(res,201,"Item added to cart", {cart})
             }
+            if ( supplementaryProducts ) {
+                  await prisma.cartItemSupplement.createMany({data:supplementaryProducts})
+            }
             const cart = await prisma.cartItem.create( {
                   data: {
                         userId: res.user.id,
@@ -33,8 +36,12 @@ const addTocart = async ( req, res ) =>
                         price: parseFloat( price ),
                         total: parseFloat(total),
                         
+                  }, include: {
+                        supplementaryProducts:true
                   }
-            })
+            });
+
+            
 
             return sendSuccessResponse(res,201,"Item added to cart", {cart})
       } catch ( error ) {
