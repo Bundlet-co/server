@@ -11,7 +11,7 @@ const addTocart = async ( req, res ) =>
       if ( !productId || !quantity || !price ) return sendErrorResponse( res, 400, "All field is required" );
       try {
             const existcart = await prisma.cartItem.findMany( { where: { userId: res.user.id } } );
-            const isExist = existcart.find( item => item.productId === productId && item.variation?.variant === variation?.variant )
+            const isExist = existcart.find( item => (item.productId === productId && item.variation && item.variation?.variant === variation?.variant) ||(item.productId === productId && !item.variation) )
             if ( isExist ) {
                   const cart = await prisma.cartItem.update( {
                         where: {
@@ -32,7 +32,7 @@ const addTocart = async ( req, res ) =>
                         variation:  variation || undefined,
                         price: parseFloat( price ),
                         total: parseFloat(total),
-                        supplementaryProducts: {
+                        supplementaryProducts: supplementaryProducts && {
                               create: supplementaryProducts.map( ( productId ) => ( {
                                     productId:productId.id
                               }))
