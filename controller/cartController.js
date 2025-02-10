@@ -43,7 +43,7 @@ const addTocart = async ( req, res ) =>
             return sendSuccessResponse(res,201,"Item added to cart", {cart})
       } catch ( error ) {
             console.error(error);
-            return sendErrorResponse(res,500,"Internal server error",error)
+            return sendErrorResponse(res,500,"Internal server error",{error})
       }
 };
 
