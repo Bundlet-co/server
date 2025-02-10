@@ -32,11 +32,7 @@ const addTocart = async ( req, res ) =>
                         variation:  variation || undefined,
                         price: parseFloat( price ),
                         total: parseFloat(total),
-                        supplementaryProducts: supplementaryProducts && {
-                              create: supplementaryProducts.map( ( productId ) => ( {
-                                    productId:productId.id
-                              }))
-                        }
+                        
                   }
             })
 
