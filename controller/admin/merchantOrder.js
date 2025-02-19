@@ -21,6 +21,7 @@ const getOrders = async ( req, res ) =>
                         }
                   },
                   include: {
+                        
                         products: {
                               include: {
                                     product: true
@@ -33,7 +34,7 @@ const getOrders = async ( req, res ) =>
                                     phone_number: true,
                                     address: true
                               }
-                        }
+                        },
                   },
             } );
 

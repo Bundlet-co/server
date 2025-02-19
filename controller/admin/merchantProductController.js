@@ -19,8 +19,8 @@ const createProduct = async ( req, res ) =>
       try {
             
             if ( !res.merchant.id ) return sendErrorResponse(res,401,"Not a merchant");
-            if ( !name || !category || !description || !price || !quantity || !discount_amount || !discount_type || !opening_date || !available_till || !delivery_duration || !dispatch_location || !dp ||!unit ||!product_type ) return sendErrorResponse( res, 400, "Product name, category,description, price,quantity, discount_type, discount_amount, opening_date, available_till, delivery_duration, dispatch_location is required" );
-            if ( images.length < 3 ) return sendErrorResponse( res, 400, "image should be greater or equall to three", null );
+            if ( !name || !category || !description || !price || !quantity || !delivery_duration || !dispatch_location || !dp ||!unit ||!product_type ) return sendErrorResponse( res, 400, "Product name, category,description, price,quantity, discount_type, discount_amount, opening_date, available_till, delivery_duration, dispatch_location is required" );
+            if ( images.length < 1 ) return sendErrorResponse( res, 400, "image should be greater or equal to 1", null );
             
             const newProduct = await prisma.product.create( {
                   data: {

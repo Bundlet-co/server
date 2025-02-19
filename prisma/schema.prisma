@@ -163,6 +163,8 @@ model CartItemSupplement {
   id         String   @id @default(uuid())
   cartItemId String
   productId  String
+  quantity   Int
+  price   Float
 
   cartItem   CartItem @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
   product    SuplementryProduct  @relation(fields: [productId], references: [id])
@@ -195,6 +197,7 @@ model OrderProduct {
   status    OrderEventStatus @default(PENDING)
   quantity  Int
   variation  Json?
+  supplementryProducts Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -24,10 +24,8 @@ const addTocart = async ( req, res ) =>
                   } )
                   return sendSuccessResponse(res,201,"Item added to cart", {cart})
             }
-            if ( supplementaryProducts ) {
-                  await prisma.cartItemSupplement.createMany({data:supplementaryProducts})
-            }
-            const cart = await prisma.cartItem.create( {
+            let supProduct;
+            const cartItem = await prisma.cartItem.create( {
                   data: {
                         userId: res.user.id,
                         productId,
@@ -36,11 +34,24 @@ const addTocart = async ( req, res ) =>
                         price: parseFloat( price ),
                         total: parseFloat(total),
                         
-                  }, include: {
-                        supplementaryProducts:true
                   }
             });
 
+            if ( supplementaryProducts ) {
+                  supProduct = Promise.all( supplementaryProducts.map( async item =>
+                  {
+                        return await prisma.cartItemSupplement.create( {
+                              data: {
+                                    cartItemId: cartItem.id,
+                                    productId: item.productId,
+                                    quantity: parseInt( item.quantity ),
+                                    price:parseFloat(item.price)
+                              }
+                        })
+                  } ) )
+            }
+            
+            const cart = {...cartItem,supplementaryProducts:[...supProduct]}
             
 
             return sendSuccessResponse(res,201,"Item added to cart", {cart})
