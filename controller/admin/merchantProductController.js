@@ -177,19 +177,16 @@ const deleteProduct = async ( req, res ) =>
             await prisma.suplementryProduct.deleteMany( { where: { product_id: id } } );
             const product = await prisma.product.delete( { where: { id } } );
 
-            const dpPublicId = extractPublicId( product.dp )
-            await cloudinary.uploader.destroy(dpPublicId)
-            Promise.all(product.images.map( async ( image ) =>
+            await fs.unlink( product.dp )
+            product.images.map( async ( image ) =>
             {
-                  const plubicId = extractPublicId(image)
-                  await cloudinary.uploader.destroy(plubicId)
-            } ))
+                  await fs.unlink(image)
+            } )
 
-            Promise.all(suplementry.map(async item =>
+            suplementry.map(async item =>
             {
-                  const plubicId = extractPublicId(item.dp)
-                  await cloudinary.uploader.destroy(plubicId)
-            } ))
+                  await fs.unlink(item.dp)
+            } )
             
             
 
@@ -236,8 +233,7 @@ const uploadImageAndDp = async ( req, res ) =>
             } )
             
             if ( dp ) {
-                  const dpPublicId = extractPublicId( product.dp )
-                  await cloudinary.uploader.destroy(dpPublicId)
+                  await fs.unlink(previous.dp)
             }
             console.log( editedProduct );
             console.log(dp.path);
@@ -266,8 +262,9 @@ const deleteImage = async ( req, res ) =>
             
             if ( !image ) return sendErrorResponse(res,404,"Product Image not found", null)
             
-            const dpPublicId = extractPublicId( image )
-            await cloudinary.uploader.destroy(dpPublicId)
+            await fs.unlink( image );
+            product.images = product.images.filter( img => img !== image )
+            
             product.images = product.images.filter( img => img !== image )
             
             await prisma.product.update( { where: { id }, data: product } )

@@ -20,11 +20,6 @@ app.use(compression({
   threshold: 1024,
 } ) );
 
-cloudinary.config( {
-  cloud_name: process.env.CLOUD_NAME,
-  api_key: process.env.API_KEY,
-  api_secret:process.env.API_SECRET
-})
 
 
 // Middlewares
@@ -38,32 +33,32 @@ app.use( cookieParser() );
 app.use( express.static( "public" ) );
 
 //Multer for Merchant and product
-const storeStorage = new CloudinaryStorage( {
-  cloudinary,
-  params: {
-    folder: "bundlet/vendors",
-    allowedFormats: [ "jpg", "png", "jpeg", "webp" ],
-    transformation:[{width:500,height:500,crop:"limit"}]
-  }
-})
+const storeStorage = multer.diskStorage( {
+  destination: "./public/images/vendors",
+  filename: ( req, file, cb ) =>
+  {
+    const uniqueSuffix = Date.now() + "-" + Math.round( Math.random() * 1e9 );
+    cb( null, file.fieldname + '-' + uniqueSuffix + file.originalname );
+  },
+} )
 
-const productStorage = new CloudinaryStorage( {
-  cloudinary,
-  params: {
-    folder: "bundlet/products",
-    allowedFormats: [ "jpg", "png", "jpeg", "webp" ],
-    transformation:[{width:500,height:500,crop:"limit"}]
+const productStorage = multer.diskStorage( {
+  destination: "./public/images/products",
+  filename: ( req, file, cb ) =>
+  {
+    const uniqueSuffix = Date.now() + "-" + Math.round( Math.random() * 1e9 );
+    cb( null, file.fieldname + '-' + uniqueSuffix + file.originalname );
   }
-})
+} )
 
-const suplementryStorage = new CloudinaryStorage( {
-  cloudinary,
-  params: {
-    folder: "bundlet/suplementry",
-    allowedFormats: [ "jpg", "png", "jpeg", "webp" ],
-    transformation:[{width:500,height:500,crop:"limit"}]
+const suplementryStorage = multer.diskStorage( {
+  destination: "./public/images/suplementry",
+  filename: ( req, file, cb ) =>
+  {
+    const uniqueSuffix = Date.now() + "-" + Math.round( Math.random() * 1e9 );
+    cb( null, file.fieldname + '-' + uniqueSuffix + file.originalname );
   }
-})
+} )
 
 const storeUpload = multer( { storage: storeStorage } );
 const storeCp = storeUpload.single( 'dp' );
