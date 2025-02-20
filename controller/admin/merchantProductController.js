@@ -1,16 +1,9 @@
 const { PrismaClient, Prisma } = require( '@prisma/client' );
 const { sendSuccessResponse, sendErrorResponse } = require( '../../utils/responseHelper' );
 const fs = require( "fs" ).promises;
-const { v2: cloudinary } = require( "cloudinary" );
-const { extractPublicId } = require( '../../utils/extract' );
 
 const prisma = new PrismaClient();
 
-cloudinary.config( {
-  cloud_name: process.env.CLOUD_NAME,
-  api_key: process.env.API_KEY,
-  api_secret:process.env.API_SECRET
-})
 
 const createProduct = async ( req, res ) =>
 {

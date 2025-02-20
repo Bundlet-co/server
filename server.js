@@ -10,8 +10,6 @@ const credentials = require( "./middlewares/credentials" );
 const corsOption = require( "./config/corsOption" );
 const { verifyJwt, verifyMerchant } = require( './middlewares/auth' );
 const { logout, logoutMerchant } = require( "./controller/logoutController" );
-const { v2: cloudinary } = require( "cloudinary" )
-const {CloudinaryStorage} = require("multer-storage-cloudinary")
 const PORT = process.env.PORT || 3500;
 
 const app = express();
