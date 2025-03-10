@@ -224,4 +224,29 @@ const deleteUser = async ( req, res ) =>
 };
 
 
-module.exports = { createUser, loginUser, editUser, deleteUser };
+const deposit = async ( req, res ) =>
+{
+      const { amount } = req.query;
+      const { id } = res.user;
+      if ( !amount ) return res.status( 400 ).json( { message: "Amount is required" } );
+      try {
+            const user = await prisma.user.findUniqueOrThrow( { where: { id } } );
+            user.balance += parseFloat( amount );
+            const updated = await prisma.user.update( { where: { id }, data: user } );
+            delete updated.password;
+            delete updated.verification_code;
+            delete updated.refresh_token
+            delete updated.resetPasswordToken
+
+            return sendSuccessResponse(res,200,"Balance updated",{user:updated})
+      }  catch (e) {
+            if (e instanceof Prisma.PrismaClientKnownRequestError) {
+                  if (e.code === "P2025")
+                  return sendErrorResponse(res,404,"User does not exist")
+            }
+            console.log( e )
+            return sendErrorResponse( res, 500, "Internal server error", e );
+      }
+}
+
+module.exports = { createUser, loginUser, editUser, deleteUser,deposit };

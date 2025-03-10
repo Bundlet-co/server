@@ -78,6 +78,7 @@ app.use( '/merchant/refresh',require("./routes/admin/refresh"))
 app.use( '/verify', require( "./routes/userVerify" ) );
 app.use( '/product', require( "./routes/userProduct" ) );
 app.use( '/categories', require( './routes/userCategory' ) );
+app.use( "/location", require( "./routes/location" ) );
 
 
 //Merchant Routes without verification
