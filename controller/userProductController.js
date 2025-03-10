@@ -161,18 +161,29 @@ const searchFilter = async ( req, res ) =>
       let whereClause = {};
       try {
             const PAGE_NUMBER = 10;
-            if ( search ) {
-                  whereClause.name = {
-                        contains: search,
-                        mode: "insensitive",
-                  };
-                  whereClause.description = {
-                        contains: search,
-                        mode: "insensitive",
-                  }
+            if (search) {
+                  whereClause.OR = [
+                  {
+                        name: {
+                              contains: search,
+                              mode: "insensitive",
+                        },
+                  },
+                  {
+                        description: {
+                              contains: search,
+                              mode: "insensitive",
+                        },
+                  },
+                  ];
             }
-            if ( minPrice ) whereClause.price = { gte: minPrice };
-            if ( maxPrice ) whereClause.price = { lte: maxPrice };
+
+            // Add price filters if they exist
+            if (minPrice || maxPrice) {
+                  whereClause.price = {};
+                  if (minPrice) whereClause.price.gte = parseFloat(minPrice);
+                  if (maxPrice) whereClause.price.lte = parseFloat(maxPrice);
+            }
 
             const count = await prisma.product.count( { where: whereClause } )
             
