@@ -165,18 +165,21 @@ const searchFilter = async ( req, res ) =>
                   whereClause.OR = [
                   {
                         name: {
-                              contains: search,
+                              contains: search.trim(),
                               mode: "insensitive",
                         },
                   },
                   {
                         description: {
-                              contains: search,
+                              contains: search.trim(),
                               mode: "insensitive",
                         },
                   },
                   ];
             }
+
+            console.log('Query params:', { search, minPrice, maxPrice, skip });
+            console.log('Where clause:', JSON.stringify(whereClause, null, 2));
 
             // Add price filters if they exist
             if (minPrice || maxPrice) {
@@ -186,7 +189,7 @@ const searchFilter = async ( req, res ) =>
             }
 
             const count = await prisma.product.count( { where: whereClause } )
-            
+            console.log('Total matching products:', count);
             if ( count === 0 ) return sendSuccessResponse( res, 200, "Category empty", { products: [], count } );
 
             const products = await prisma.product.findMany( {
@@ -197,6 +200,9 @@ const searchFilter = async ( req, res ) =>
                   skip: +skip || 0,
                   take:PAGE_NUMBER
             } )
+
+            console.log('Fetched products:', products.length);
+        console.log('First product sample:', products[0]);
             
             return sendSuccessResponse( res, 200, "Product fetched", { products, count } );
       } catch ( error ) {
