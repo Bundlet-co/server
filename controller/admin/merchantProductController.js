@@ -237,7 +237,7 @@ const uploadImageAndDp = async ( req, res ) =>
                   return sendErrorResponse(res,404,"Product not found", null)
             }
             if (e.code === "ENOENT"){
-                  return sendSuccessResponse(res,204,"Product Image updated",{dp:dp.path})
+                  return sendSuccessResponse(res,202,"Product Image updated",{dp:dp.path})
             }
             console.log(e)
             return sendErrorResponse(res,500,"Internal server error",e)
