@@ -219,10 +219,7 @@ const uploadImageAndDp = async ( req, res ) =>
             const editedProduct = await prisma.product.update( {
                   where: {
                         id
-                  }, data: {
-                        dp: dp ? dp.path : previous.dp,
-                        images:images ? [...previous.images,...images.map(image=> image.path)]: previous.images
-                  }
+                  }, data: product
             } )
             
             if ( dp ) {
