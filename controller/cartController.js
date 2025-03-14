@@ -24,7 +24,7 @@ const addTocart = async ( req, res ) =>
             });
 
             if ( supplementaryProducts ) {
-                  supProduct = Promise.all( supplementaryProducts.map( async item =>
+                  supProduct = Promise.all( JSON.parse(supplementaryProducts.map( async item =>
                   {
                         return await prisma.cartItemSupplement.create( {
                               data: {
@@ -34,7 +34,7 @@ const addTocart = async ( req, res ) =>
                                     price:parseFloat(item.price)
                               }
                         })
-                  } ) )
+                  } ) ))
             }
             
             const cart = {...cartItem,supplementaryProducts:[...supProduct]}
@@ -56,24 +56,7 @@ const addAllToCart = async (req, res) => {
       carts.map(async (item) => {
         const { supplementaryProducts, id, name, quantity, ...mainCartData } = item;
 
-        // Check if this cart item already exists
-        const existingCartItem = await prisma.cartItem.findFirst({
-          where: {
-            userId: res.user.id,
-                    productId:item.productId
-          },
-        });
-
-        if (existingCartItem && existingCartItem.variation.variant === item.variation.variant) {
-          // If item exists, update quantity and total
-          return await prisma.cartItem.update({
-            where: { id: existingCartItem.id },
-            data: {
-              quantity: { increment: quantity },
-              total: existingCartItem.total + (mainCartData.price * quantity),
-            },
-          });
-        } else {
+        
           // If item does not exist, create a new cart item
           return await prisma.cartItem.create({
             data: {
@@ -85,7 +68,6 @@ const addAllToCart = async (req, res) => {
               total: mainCartData.price * quantity,
             },
           });
-        }
       })
     );
 
