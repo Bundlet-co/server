@@ -32,6 +32,8 @@ const addTocart = async ( req, res ) =>
                                     productId: item.id,
                                     quantity: parseInt( item.quantity ),
                                     price: parseFloat( item.price )
+                              }, include: {
+                                    product:true
                               }
                         } );
                   } ) );
@@ -124,7 +126,7 @@ const getCart = async ( req, res ) =>
             
             if ( carts.length === 0 ) return sendSuccessResponse( res, 200, "Cart is empty", { carts } );
 
-            return sendSuccessResponse( res, 200, "Cart retrived successfully", { carts } );
+            return sendSuccessResponse( res, 200, "Cart retrived successfully", { carts:{...carts,suplementryProducts:carts.supplementaryProducts} } );
       } catch ( error ) {
             console.error( error );
             return sendErrorResponse( res, 500, "Internal server error", error );
