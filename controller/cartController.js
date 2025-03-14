@@ -24,17 +24,19 @@ const addTocart = async ( req, res ) =>
             });
 
             if ( supplementaryProducts ) {
-                  supProduct = Promise.all( JSON.parse(supplementaryProducts.map( async item =>
+                  const products = JSON.parse(supplementaryProducts)
+                  console.log(products);
+                  supProduct = Promise.all( products.map( async item =>
                   {
                         return await prisma.cartItemSupplement.create( {
                               data: {
                                     cartItemId: cartItem.id,
-                                    productId: item.productId,
+                                    productId: item.id,
                                     quantity: parseInt( item.quantity ),
-                                    price:parseFloat(item.price)
+                                    price: parseFloat( item.price )
                               }
-                        })
-                  } ) ))
+                        } );
+                  } ) );
             }
             
             const cart = {...cartItem,supplementaryProducts:[...supProduct]}
