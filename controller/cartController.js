@@ -7,7 +7,6 @@ const prisma = new PrismaClient();
 const addTocart = async ( req, res ) =>
 {
       const { productId, quantity, variation, supplementaryProducts, price, total } = req.body;
-      console.log(req.body)
       if ( !productId || !quantity || !price ) return sendErrorResponse( res, 400, "All field is required" );
       try {
             let supProduct;
@@ -25,7 +24,6 @@ const addTocart = async ( req, res ) =>
 
             if ( supplementaryProducts ) {
                   const products = JSON.parse(supplementaryProducts)
-                  console.log(products);
                   supProduct = await Promise.all( products.map( async item =>
                   {
                         return await prisma.cartItemSupplement.create( {
@@ -42,6 +40,7 @@ const addTocart = async ( req, res ) =>
             console.log(supProduct);
             const cart = {...cartItem,supplementaryProducts:[...supProduct]}
             
+            console.log(cart);
 
             return sendSuccessResponse(res,201,"Item added to cart", {cart})
       } catch ( error ) {
