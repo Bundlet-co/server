@@ -225,7 +225,7 @@ const getSingleOrder = async ( req, res ) =>
                   }
             } )
 
-            return sendSuccessResponse( res, 200, "Orders fetched", { order })
+            return sendSuccessResponse( res, 200, "Orders fetched", { orders: order })
       } catch (error) {
             if (error instanceof Prisma.PrismaClientKnownRequestError) {
                   if (error.code === "P2025")
