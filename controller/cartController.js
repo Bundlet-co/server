@@ -37,10 +37,7 @@ const addTocart = async ( req, res ) =>
                   } ) );
             }
             
-            console.log(supProduct);
-            const cart = {...cartItem,supplementaryProducts:[...supProduct]}
-            
-            console.log(cart);
+            const cart = {...cartItem,suplementryProducts:[...supProduct]}
 
             return sendSuccessResponse(res,201,"Item added to cart", {cart})
       } catch ( error ) {
