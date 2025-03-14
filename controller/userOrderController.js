@@ -26,7 +26,7 @@ const createOrder = async ( req, res ) =>
                               price: product.price,
                               quantity: product.quantity,
                               variation: product.variation ? product.variation : undefined,
-                              supplementryProducts: product.supplementryProducts
+                              supplementryProducts: product.supplementryProducts ? JSON.parse(product.supplementryProducts) : null
                         }))
                         }
                   }, include: {
