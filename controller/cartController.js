@@ -26,7 +26,7 @@ const addTocart = async ( req, res ) =>
             if ( supplementaryProducts ) {
                   const products = JSON.parse(supplementaryProducts)
                   console.log(products);
-                  supProduct = Promise.all( products.map( async item =>
+                  supProduct = await Promise.all( products.map( async item =>
                   {
                         return await prisma.cartItemSupplement.create( {
                               data: {
@@ -39,6 +39,7 @@ const addTocart = async ( req, res ) =>
                   } ) );
             }
             
+            console.log(supProduct);
             const cart = {...cartItem,supplementaryProducts:[...supProduct]}
             
 
