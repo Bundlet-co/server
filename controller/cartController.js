@@ -112,7 +112,7 @@ const addAllToCart = async (req, res) => {
 const getCart = async ( req, res ) =>
 {
       try {
-            const carts = await prisma.cartItem.findMany( {
+            const items = await prisma.cartItem.findMany( {
                   where: { userId: res.user.id },
                   include: {
                         product: true,
@@ -123,10 +123,15 @@ const getCart = async ( req, res ) =>
                         }
                   },
             } );
+
+            const carts = items.map( item =>
+            {
+                  return {...item, suplementryProducts:item.supplementaryProducts}
+            })
             
             if ( carts.length === 0 ) return sendSuccessResponse( res, 200, "Cart is empty", { carts } );
 
-            return sendSuccessResponse( res, 200, "Cart retrived successfully", { carts:{...carts,suplementryProducts:carts.supplementaryProducts} } );
+            return sendSuccessResponse( res, 200, "Cart retrived successfully", { carts } );
       } catch ( error ) {
             console.error( error );
             return sendErrorResponse( res, 500, "Internal server error", error );
